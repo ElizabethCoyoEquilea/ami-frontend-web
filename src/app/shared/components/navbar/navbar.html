@@ -1,0 +1,25 @@
+<nav class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+  <a class="text-xl font-extrabold text-blue-950" routerLink="/">AMI</a>
+
+  <div class="flex items-center gap-3">
+    @if (!isLoggedIn) {
+      <a class="rounded-md px-3 py-2 text-sm font-bold text-blue-950 hover:bg-gray-100" routerLink="/login">
+        Iniciar sesion
+      </a>
+      <a class="rounded-md bg-blue-950 px-3 py-2 text-sm font-bold text-white hover:bg-black" routerLink="/register">
+        Registrarse
+      </a>
+    } @else {
+      <a class="rounded-md px-3 py-2 text-sm font-bold text-blue-950 hover:bg-gray-100" routerLink="/panel">
+        Panel
+      </a>
+      <button
+        class="rounded-md bg-blue-950 px-3 py-2 text-sm font-bold text-white hover:bg-black"
+        type="button"
+        (click)="logout()"
+      >
+        Cerrar sesion
+      </button>
+    }
+  </div>
+</nav>
