@@ -1,0 +1,166 @@
+<main class="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
+  <section class="w-full max-w-2xl rounded-lg bg-white p-8 shadow-sm">
+    <div class="mb-8">
+      <p class="text-sm font-bold uppercase text-blue-950">AMI</p>
+      <h1 class="mt-2 text-3xl font-extrabold text-blue-950">Crear cuenta</h1>
+      <p class="mt-2 text-sm text-gray-600">Registra tus datos para acceder al sistema.</p>
+    </div>
+
+    <form class="grid gap-5 md:grid-cols-2" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="fullName">Nombre completo</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          autocomplete="name"
+          placeholder="Ayrton Daza Miranda"
+        />
+
+        @if (fieldIsInvalid('fullName')) {
+          <p class="mt-2 text-sm text-red-600">El nombre completo es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="email">Correo electronico</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="ayrton.daza.1230@gmail.com"
+        />
+
+        @if (fieldIsInvalid('email')) {
+          <p class="mt-2 text-sm text-red-600">Ingresa un correo electronico valido.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="birthDate">Fecha de nacimiento</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="birthDate"
+          type="date"
+          formControlName="birthDate"
+        />
+
+        @if (fieldIsInvalid('birthDate')) {
+          <p class="mt-2 text-sm text-red-600">La fecha de nacimiento es obligatoria.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="document">Documento</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="document"
+          type="text"
+          formControlName="document"
+          autocomplete="off"
+          placeholder="1234567890"
+        />
+
+        @if (fieldIsInvalid('document')) {
+          <p class="mt-2 text-sm text-red-600">El documento es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="gender">Genero</label>
+        <select
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="gender"
+          formControlName="gender"
+        >
+          <option value="">Selecciona una opcion</option>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+          <option value="O">Otro</option>
+        </select>
+
+        @if (fieldIsInvalid('gender')) {
+          <p class="mt-2 text-sm text-red-600">El genero es obligatorio.</p>
+        }
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="phone">Telefono</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          autocomplete="tel"
+          placeholder="61524977"
+        />
+
+        @if (fieldIsInvalid('phone')) {
+          <p class="mt-2 text-sm text-red-600">El telefono es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="password">Contrasena</label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          placeholder="Minimo 6 caracteres"
+        />
+
+        @if (fieldIsInvalid('password')) {
+          <p class="mt-2 text-sm text-red-600">La contrasena debe tener al menos 6 caracteres.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="confirmPassword">
+          Confirmar contrasena
+        </label>
+        <input
+          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+          placeholder="Repite tu contrasena"
+        />
+
+        @if (fieldIsInvalid('confirmPassword')) {
+          <p class="mt-2 text-sm text-red-600">Confirma tu contrasena.</p>
+        }
+
+        @if (passwordsDoNotMatch()) {
+          <p class="mt-2 text-sm text-red-600">Las contrasenas no coinciden.</p>
+        }
+      </div>
+
+      @if (errorMessage) {
+        <p class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 md:col-span-2">
+          {{ errorMessage }}
+        </p>
+      }
+
+      <div class="space-y-4 md:col-span-2">
+        <button
+          class="w-full rounded-md bg-blue-950 px-4 py-2.5 font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
+          type="submit"
+          [disabled]="isLoading"
+        >
+          {{ isLoading ? 'Registrando...' : 'Registrarme' }}
+        </button>
+
+        <p class="text-center text-sm text-gray-600">
+          Ya tienes cuenta?
+          <a class="font-bold text-blue-950 hover:text-black" routerLink="/login">Inicia sesion</a>
+        </p>
+      </div>
+    </form>
+  </section>
+</main>
