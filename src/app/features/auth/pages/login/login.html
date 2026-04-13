@@ -27,7 +27,7 @@
 
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="password">
-          Contrasena
+          Contrase&ntilde;a
         </label>
         <input
           class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-blanco)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
@@ -39,8 +39,18 @@
         />
 
         @if (passwordIsInvalid) {
-          <p class="mt-2 text-sm text-[var(--color-error)]">La contrasena debe tener al menos 6 caracteres.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">La contrase&ntilde;a debe tener al menos 6 caracteres.</p>
         }
+      </div>
+
+      <div class="-mt-2 text-right">
+        <button
+          class="text-sm font-bold text-[var(--color-titulo)] hover:text-[var(--color-boton-hover)]"
+          type="button"
+          (click)="openResetPasswordModal()"
+        >
+          Olvidaste tu contrase&ntilde;a?
+        </button>
       </div>
 
       @if (errorMessage) {
@@ -65,4 +75,68 @@
       </p>
     </form>
   </section>
+
+  @if (showResetPasswordModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-10">
+      <section class="w-full max-w-md rounded-lg bg-[var(--color-formulario)] p-8 shadow-lg">
+        <div class="mb-6">
+          <h2 class="text-2xl font-extrabold text-[var(--color-titulo)]">Recuperar contrase&ntilde;a</h2>
+          <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">
+            Ingresa tu correo electronico y te enviaremos las instrucciones para restablecer tu contrase&ntilde;a.
+          </p>
+        </div>
+
+        <form class="space-y-4" [formGroup]="resetPasswordForm" (ngSubmit)="submitResetPassword()">
+          <div>
+            <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="resetEmail">
+              Correo electronico
+            </label>
+            <input
+              class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+              id="resetEmail"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="usuario@correo.com"
+            />
+
+            @if (resetEmailIsInvalid) {
+              <p class="mt-2 text-sm text-[var(--color-error)]">Ingresa un correo electronico valido.</p>
+            }
+          </div>
+
+          @if (resetPasswordSuccessMessage) {
+            <p class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              {{ resetPasswordSuccessMessage }}
+            </p>
+          }
+
+          @if (resetPasswordErrorMessage) {
+            <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)]">
+              {{ resetPasswordErrorMessage }}
+            </p>
+          }
+
+          <div class="space-y-3 pt-2">
+            <button
+              class="w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)] disabled:cursor-not-allowed disabled:bg-[var(--color-deshabilitado)]"
+              type="submit"
+              [disabled]="resetPasswordLoading"
+            >
+              {{ resetPasswordLoading ? 'Enviando...' : 'Enviar instrucciones' }}
+            </button>
+
+            <button
+              class="w-full rounded-md border border-[var(--color-borde)] bg-transparent px-4 py-2.5 font-bold text-[var(--color-titulo)] transition hover:bg-[var(--color-input)]"
+              type="button"
+              (click)="closeResetPasswordModal()"
+              [disabled]="resetPasswordLoading"
+            >
+              Cerrar
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
 </main>

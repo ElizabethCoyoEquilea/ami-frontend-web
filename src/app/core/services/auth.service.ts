@@ -15,6 +15,7 @@ export class AuthService {
       .pipe(
         tap((response) => {
           localStorage.setItem(this.tokenKey, response.access_token);
+          console.log('Token almacenado:', response.access_token);
         }),
       );
   }
@@ -39,6 +40,10 @@ export class AuthService {
         email,
         codigo,
       });
+  }
+
+  resetPassword(email: string): Observable<{ message: string }> {
+    return this.apiService.post<{ message: string }, { email: string }>('/auth/reset-password', { email });
   }
 
   logout(): void {
