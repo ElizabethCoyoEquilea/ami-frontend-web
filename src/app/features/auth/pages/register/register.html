@@ -1,16 +1,18 @@
-<main class="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
-  <section class="w-full max-w-2xl rounded-lg bg-white p-8 shadow-sm">
+<main class="flex min-h-screen items-center justify-center bg-[var(--color-fondo)] px-4 py-10">
+  <section class="w-full max-w-2xl rounded-lg bg-[var(--color-formulario)] p-8 shadow-sm">
     <div class="mb-8">
-      <p class="text-sm font-bold uppercase text-blue-950">AMI</p>
-      <h1 class="mt-2 text-3xl font-extrabold text-blue-950">Crear cuenta</h1>
-      <p class="mt-2 text-sm text-gray-600">Registra tus datos para acceder al sistema.</p>
+      <p class="text-sm font-bold uppercase text-[var(--color-titulo)]">AMI</p>
+      <h1 class="mt-2 text-3xl font-extrabold text-[var(--color-titulo)]">Crear cuenta</h1>
+      <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Registra tus datos para acceder al sistema.</p>
     </div>
 
     <form class="grid gap-5 md:grid-cols-2" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
       <div class="md:col-span-2">
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="fullName">Nombre completo</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="fullName">
+          Nombre completo
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="fullName"
           type="text"
           formControlName="fullName"
@@ -19,14 +21,16 @@
         />
 
         @if (fieldIsInvalid('fullName')) {
-          <p class="mt-2 text-sm text-red-600">El nombre completo es obligatorio.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">El nombre completo es obligatorio.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="email">Correo electronico</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="email">
+          Correo electronico
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="email"
           type="email"
           formControlName="email"
@@ -35,28 +39,32 @@
         />
 
         @if (fieldIsInvalid('email')) {
-          <p class="mt-2 text-sm text-red-600">Ingresa un correo electronico valido.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">Ingresa un correo electronico valido.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="birthDate">Fecha de nacimiento</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="birthDate">
+          Fecha de nacimiento
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="birthDate"
           type="date"
           formControlName="birthDate"
         />
 
         @if (fieldIsInvalid('birthDate')) {
-          <p class="mt-2 text-sm text-red-600">La fecha de nacimiento es obligatoria.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">La fecha de nacimiento es obligatoria.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="document">Documento</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="document">
+          Documento
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="document"
           type="text"
           formControlName="document"
@@ -65,14 +73,16 @@
         />
 
         @if (fieldIsInvalid('document')) {
-          <p class="mt-2 text-sm text-red-600">El documento es obligatorio.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">El documento es obligatorio.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="gender">Genero</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="gender">
+          Genero
+        </label>
         <select
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="gender"
           formControlName="gender"
         >
@@ -83,14 +93,16 @@
         </select>
 
         @if (fieldIsInvalid('gender')) {
-          <p class="mt-2 text-sm text-red-600">El genero es obligatorio.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">El genero es obligatorio.</p>
         }
       </div>
 
       <div class="md:col-span-2">
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="phone">Telefono</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="phone">
+          Telefono
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="phone"
           type="tel"
           formControlName="phone"
@@ -99,14 +111,16 @@
         />
 
         @if (fieldIsInvalid('phone')) {
-          <p class="mt-2 text-sm text-red-600">El telefono es obligatorio.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">El telefono es obligatorio.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="password">Contrasena</label>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="password">
+          Contrasena
+        </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="password"
           type="password"
           formControlName="password"
@@ -115,16 +129,16 @@
         />
 
         @if (fieldIsInvalid('password')) {
-          <p class="mt-2 text-sm text-red-600">La contrasena debe tener al menos 6 caracteres.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">La contrasena debe tener al menos 6 caracteres.</p>
         }
       </div>
 
       <div>
-        <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="confirmPassword">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="confirmPassword">
           Confirmar contrasena
         </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
           id="confirmPassword"
           type="password"
           formControlName="confirmPassword"
@@ -133,32 +147,34 @@
         />
 
         @if (fieldIsInvalid('confirmPassword')) {
-          <p class="mt-2 text-sm text-red-600">Confirma tu contrasena.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">Confirma tu contrasena.</p>
         }
 
         @if (passwordsDoNotMatch()) {
-          <p class="mt-2 text-sm text-red-600">Las contrasenas no coinciden.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">Las contrasenas no coinciden.</p>
         }
       </div>
 
       @if (errorMessage) {
-        <p class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 md:col-span-2">
+        <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)] md:col-span-2">
           {{ errorMessage }}
         </p>
       }
 
       <div class="space-y-4 md:col-span-2">
         <button
-          class="w-full rounded-md bg-blue-950 px-4 py-2.5 font-bold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-400"
+          class="w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)] disabled:cursor-not-allowed disabled:bg-[var(--color-deshabilitado)]"
           type="submit"
           [disabled]="isLoading"
         >
           {{ isLoading ? 'Registrando...' : 'Registrarme' }}
         </button>
 
-        <p class="text-center text-sm text-gray-600">
+        <p class="text-center text-sm text-[var(--color-texto-secundario)]">
           Ya tienes cuenta?
-          <a class="font-bold text-blue-950 hover:text-black" routerLink="/login">Inicia sesion</a>
+          <a class="font-bold text-[var(--color-titulo)] hover:text-[var(--color-boton-hover)]" routerLink="/login">
+            Inicia sesion
+          </a>
         </p>
       </div>
     </form>

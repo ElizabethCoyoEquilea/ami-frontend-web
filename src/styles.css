@@ -1,3 +1,36 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+:root {
+  --color-fondo: #e4ecf3;
+  --color-formulario: #b8bdbd;
+  --color-input: #e8eef6;
+  --color-tarjeta: #ffffff;
+  --color-hover-suave: #e8edf2;
+  --color-texto: #111827;
+  --color-texto-secundario: #4b5563;
+  --color-titulo: #0b1f4d;
+  --color-borde: #d1d5db;
+  --color-blanco: #ffffff;
+  --color-boton: #0b1f4d;
+  --color-boton-hover: #07142f;
+  --color-deshabilitado: #9ca3af;
+  --color-error: #dc2626;
+  --color-error-fondo: #fef2f2;
+  --color-error-borde: #fecaca;
+  --color-placeholder: #d1d5db;
+  --color-navbar: #0b1f4d;
+  --color-boton-navbar: #fc3b01;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-input) inset;
+  -webkit-text-fill-color: var(--color-texto);
+  caret-color: var(--color-texto);
+}
