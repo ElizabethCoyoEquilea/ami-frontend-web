@@ -179,4 +179,73 @@
       </div>
     </form>
   </section>
+
+  <!-- Modal de verificación -->
+  @if (showVerificationModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-10">
+      <section class="w-full max-w-md rounded-lg bg-[var(--color-formulario)] p-8 shadow-lg">
+        <div class="mb-6">
+          <h2 class="text-2xl font-extrabold text-[var(--color-titulo)]">Verificar cuenta</h2>
+          <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">
+            Hemos enviado un codigo de verificacion a:
+            <span class="font-semibold text-[var(--color-titulo)]">{{ registeredEmail }}</span>
+          </p>
+        </div>
+
+        <form class="space-y-4" [formGroup]="verificationForm" (ngSubmit)="submitVerification()">
+          <div>
+            <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="codigo">
+              Codigo de verificacion
+            </label>
+            <input
+              class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+              id="codigo"
+              type="text"
+              formControlName="codigo"
+              placeholder="123456"
+              maxlength="10"
+              inputmode="numeric"
+            />
+
+            @if (codigoFieldIsInvalid()) {
+              <p class="mt-2 text-sm text-[var(--color-error)]">
+                El codigo debe tener entre 6 y 10 caracteres.
+              </p>
+            }
+          </div>
+
+          @if (verificationSuccessMessage) {
+            <p class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              ? {{ verificationSuccessMessage }}
+            </p>
+          }
+
+          @if (verificationErrorMessage) {
+            <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)]">
+              {{ verificationErrorMessage }}
+            </p>
+          }
+
+          <div class="space-y-3 pt-2">
+            <button
+              class="w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)] disabled:cursor-not-allowed disabled:bg-[var(--color-deshabilitado)]"
+              type="submit"
+              [disabled]="verificationLoading"
+            >
+              {{ verificationLoading ? 'Verificando...' : 'Verificar' }}
+            </button>
+
+            <button
+              class="w-full rounded-md border border-[var(--color-borde)] bg-transparent px-4 py-2.5 font-bold text-[var(--color-titulo)] transition hover:bg-[var(--color-input)]"
+              type="button"
+              (click)="closeVerificationModal()"
+              [disabled]="verificationLoading"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
 </main>

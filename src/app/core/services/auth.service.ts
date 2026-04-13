@@ -29,8 +29,16 @@ export class AuthService {
       telefono: string;
       documento: string;
     };
-  }): Observable<unknown> {
-    return this.apiService.post<unknown, typeof userData>('/usuarios/register/admin', userData);
+  }): Observable<{ registered: boolean } | boolean> {
+    return this.apiService.post<{ registered: boolean } | boolean, typeof userData>('/usuarios/register/admin', userData);
+  }
+
+  verifyCode(email: string, codigo: string): Observable<{ message: string }> {
+    return this.apiService
+      .post<{ message: string }, { email: string; codigo: string }>('/usuarios/verify', {
+        email,
+        codigo,
+      });
   }
 
   logout(): void {
