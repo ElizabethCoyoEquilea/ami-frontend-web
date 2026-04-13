@@ -1,5 +1,5 @@
-<main class="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
-  <section class="w-full max-w-2xl rounded-lg bg-white p-8 shadow-sm">
+<main class="flex min-h-screen items-center justify-center bg-[var(--color-fondo)] px-4 py-10">
+  <section class="w-full max-w-2xl rounded-lg bg-[var(--color-formulario)] p-8 shadow-sm">
     <div class="mb-8">
       <p class="text-sm font-bold uppercase text-blue-950">AMI</p>
       <h1 class="mt-2 text-3xl font-extrabold text-blue-950">Crear cuenta</h1>
@@ -10,7 +10,7 @@
       <div class="md:col-span-2">
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="fullName">Nombre completo</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="fullName"
           type="text"
           formControlName="fullName"
@@ -26,7 +26,7 @@
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="email">Correo electronico</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="email"
           type="email"
           formControlName="email"
@@ -42,7 +42,7 @@
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="birthDate">Fecha de nacimiento</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="birthDate"
           type="date"
           formControlName="birthDate"
@@ -56,7 +56,7 @@
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="document">Documento</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="document"
           type="text"
           formControlName="document"
@@ -72,7 +72,7 @@
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="gender">Genero</label>
         <select
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="gender"
           formControlName="gender"
         >
@@ -90,7 +90,7 @@
       <div class="md:col-span-2">
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="phone">Telefono</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="phone"
           type="tel"
           formControlName="phone"
@@ -106,7 +106,7 @@
       <div>
         <label class="mb-2 block text-sm font-bold uppercase text-gray-500" for="password">Contrasena</label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="password"
           type="password"
           formControlName="password"
@@ -124,7 +124,7 @@
           Confirmar contrasena
         </label>
         <input
-          class="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-black outline-none transition placeholder:text-gray-400 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
+          class="w-full rounded-md border border-gray-200 bg-[var(--color-input)] px-3 py-2 text-black outline-none transition placeholder:text-gray-300 focus:border-blue-950 focus:bg-white focus:ring-2 focus:ring-blue-950/10"
           id="confirmPassword"
           type="password"
           formControlName="confirmPassword"
