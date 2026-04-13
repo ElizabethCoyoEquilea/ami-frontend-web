@@ -45,7 +45,7 @@ export class LoginComponent {
     this.authService.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
         this.isLoading = false;
-        this.router.navigateByUrl('/');
+        this.router.navigateByUrl('/my-workshops');
       },
       error: () => {
         this.isLoading = false;

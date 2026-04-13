@@ -1,0 +1,254 @@
+.workshops-page {
+  min-height: calc(100vh - 73px);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  padding: 40px 24px;
+}
+
+.workshops-container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-texto-secundario);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  color: var(--color-titulo);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+h2 {
+  color: var(--color-titulo);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.page-description {
+  max-width: 620px;
+  margin-top: 12px;
+  color: var(--color-texto-secundario);
+  line-height: 1.6;
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.primary-action {
+  border: 1px solid var(--color-boton);
+  background: var(--color-boton);
+  color: var(--color-blanco);
+}
+
+.primary-action:hover,
+.secondary-action:hover {
+  transform: translateY(-1px);
+}
+
+.primary-action:hover {
+  background: var(--color-boton-hover);
+  border-color: var(--color-boton-hover);
+}
+
+.secondary-action {
+  border: 1px solid var(--color-borde);
+  background: var(--color-blanco);
+  color: var(--color-titulo);
+  cursor: pointer;
+}
+
+.secondary-action:hover {
+  background: var(--color-hover-suave);
+}
+
+.empty-state,
+.summary-card,
+.workshop-card {
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  background: var(--color-tarjeta);
+  box-shadow: 0 10px 28px rgba(11, 31, 77, 0.08);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.empty-state p {
+  max-width: 520px;
+  color: var(--color-texto-secundario);
+  line-height: 1.6;
+}
+
+.empty-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--color-navbar);
+  color: var(--color-blanco);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.summary-label,
+.summary-card p {
+  color: var(--color-texto-secundario);
+}
+
+.summary-label {
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.summary-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.summary-stats div {
+  min-width: 110px;
+  border-radius: 8px;
+  background: var(--color-formulario);
+  padding: 14px;
+  text-align: center;
+}
+
+.summary-stats strong {
+  display: block;
+  color: var(--color-titulo);
+  font-size: 1.5rem;
+}
+
+.summary-stats span {
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.workshops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.workshop-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-top p,
+.workshop-info {
+  color: var(--color-texto-secundario);
+}
+
+.card-top p {
+  margin-top: 6px;
+}
+
+.status-badge {
+  border-radius: 999px;
+  background: var(--color-hover-suave);
+  color: var(--color-titulo);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.workshop-info {
+  display: grid;
+  gap: 8px;
+  margin: 22px 0;
+  font-size: 0.95rem;
+}
+
+.workshop-info strong {
+  color: var(--color-texto);
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-borde);
+}
+
+@media (max-width: 720px) {
+  .page-header,
+  .summary-card {
+    flex-direction: column;
+  }
+
+  .primary-action,
+  .secondary-action {
+    width: 100%;
+  }
+
+  .summary-stats {
+    width: 100%;
+  }
+
+  .summary-stats div {
+    flex: 1;
+  }
+}

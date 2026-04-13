@@ -1,0 +1,41 @@
+<app-navbar></app-navbar>
+
+<main class="workshops-page">
+  <section class="workshops-container">
+    <header class="page-header">
+      <div>
+        <h1>Mis talleres</h1>
+      </div>
+
+      <a class="primary-action" routerLink="/register-workshop">Registrar nuevo taller</a>
+    </header>
+
+    @if (workshops.length === 0) {
+      <section class="empty-state">
+        <h2>Aun no tienes talleres registrados</h2>
+      </section>
+    } @else {
+
+      <section class="workshops-grid">
+        @for (workshop of workshops; track workshop.id) {
+          <article class="workshop-card">
+            <div class="card-top">
+              <div>
+                <h2>{{ workshop.name }}</h2>
+                <p>{{ workshop.address }}</p>
+                <p>{{ workshop.phone }}</p>
+              </div>
+              <span class="status-badge">{{ workshop.status }}</span>
+            </div>
+
+            <div class="card-actions">
+              <a class="secondary-action" [routerLink]="['/workshop-detail', workshop.id]">Ver</a>
+              <a class="secondary-action" [routerLink]="['/edit-workshop', workshop.id]">Editar</a>
+              <a class="primary-action" [routerLink]="['/workshop-detail', workshop.id]">Entrar</a>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </section>
+</main>

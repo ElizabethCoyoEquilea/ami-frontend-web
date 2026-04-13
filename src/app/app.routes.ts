@@ -17,6 +17,13 @@ export const routes: Routes = [
       import('./features/auth/pages/register/register').then((component) => component.RegisterComponent),
   },
   {
+    path: 'my-workshops',
+    loadComponent: () =>
+      import('./features/workshops/pages/my-workshops/my-workshops').then(
+        (component) => component.MyWorkshopsComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
