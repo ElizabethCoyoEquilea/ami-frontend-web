@@ -14,12 +14,12 @@ interface Workshop {
 }
 
 @Component({
-  selector: 'app-workshop-detail',
+  selector: 'app-view-workshop',
   imports: [RouterLink],
-  templateUrl: './workshop-detail.html',
-  styleUrl: './workshop-detail.css',
+  templateUrl: './view-workshop.html',
+  styleUrl: './view-workshop.css',
 })
-export class WorkshopDetailComponent {
+export class ViewWorkshopComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly storageKey = 'ami_workshops';
 

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { NavbarComponent } from '../../../../shared/components/navbar/navbar';
+import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 
 interface Workshop {
   id: number;

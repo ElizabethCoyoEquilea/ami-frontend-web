@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { WorkshopService } from '../../../../core/services/workshop.service';
+import { WorkshopService } from '../../../../../core/services/workshop.service';
 
 @Component({
   selector: 'app-register-workshop',
