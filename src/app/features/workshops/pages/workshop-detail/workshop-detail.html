@@ -1,0 +1,90 @@
+<main class="flex min-h-screen items-center justify-center bg-[var(--color-fondo)] px-4 py-10">
+  <section class="w-full max-w-2xl rounded-lg bg-[var(--color-formulario)] p-8 shadow-sm">
+    <div class="mb-8">
+      <p class="text-sm font-bold uppercase text-[var(--color-titulo)]">AMI</p>
+      <h1 class="mt-2 text-3xl font-extrabold text-[var(--color-titulo)]">Detalle del taller</h1>
+      <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Informacion registrada del taller.</p>
+    </div>
+
+    @if (workshopNotFound) {
+      <div class="space-y-4">
+        <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)]">
+          No se encontro el taller seleccionado.
+        </p>
+
+        <a class="block w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 text-center font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)]" routerLink="/my-workshops">
+          Volver a mis talleres
+        </a>
+      </div>
+    } @else {
+      <div class="grid gap-5 md:grid-cols-2">
+        <div class="md:col-span-2">
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Nombre</p>
+          <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ workshop?.name }}
+          </p>
+        </div>
+
+        <div class="md:col-span-2">
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Descripcion</p>
+          <p class="min-h-28 rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ workshop?.description }}
+          </p>
+        </div>
+
+        <div class="md:col-span-2">
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Direccion</p>
+          <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ workshop?.address }}
+          </p>
+        </div>
+
+        <div class="md:col-span-2">
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Radio de cobertura</p>
+          <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ coverageRadius }}
+          </p>
+        </div>
+
+        <div>
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Horario</p>
+          <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ schedule }}
+          </p>
+        </div>
+
+        <div>
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Estado</p>
+          <p class="rounded-md border px-3 py-2 text-sm font-bold" [class]="stateClasses">
+            {{ calculatedState }}
+          </p>
+        </div>
+
+        <div>
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Disponibilidad</p>
+          <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
+            {{ workshop?.status }}
+          </p>
+        </div>
+
+        <div>
+          <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Calificacion</p>
+          <div class="flex min-h-10 items-center gap-2 rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2">
+            <div class="flex items-center gap-1" aria-label="Calificacion del taller">
+              @for (star of starIndexes; track star) {
+                <span class="text-xl" [class]="starIsFilled(star) ? 'text-yellow-500' : 'text-[var(--color-deshabilitado)]'">★</span>
+              }
+            </div>
+            <span class="text-sm font-bold text-[var(--color-titulo)]">{{ displayRating }}/5</span>
+          </div>
+        </div>
+
+        <div class="space-y-4 md:col-span-2">
+          <a class="block w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 text-center font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)]" routerLink="/my-workshops">
+            Volver a mis talleres
+          </a>
+        </div>
+      </div>
+    }
+  </section>
+</main>

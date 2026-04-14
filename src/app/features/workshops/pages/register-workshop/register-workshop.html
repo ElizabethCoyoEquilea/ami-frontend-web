@@ -1,0 +1,136 @@
+<main class="flex min-h-screen items-center justify-center bg-[var(--color-fondo)] px-4 py-10">
+  <section class="w-full max-w-2xl rounded-lg bg-[var(--color-formulario)] p-8 shadow-sm">
+    <div class="mb-8">
+      <p class="text-sm font-bold uppercase text-[var(--color-titulo)]">AMI</p>
+      <h1 class="mt-2 text-3xl font-extrabold text-[var(--color-titulo)]">Registrar taller</h1>
+      <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Completa los datos del taller para comenzar.</p>
+    </div>
+
+    <form class="grid gap-5 md:grid-cols-2" [formGroup]="workshopForm" (ngSubmit)="submitWorkshop()">
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="name">
+          Nombre
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="name"
+          type="text"
+          formControlName="name"
+          autocomplete="organization"
+          placeholder="Taller Central AMI"
+        />
+
+        @if (fieldIsInvalid('name')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">El nombre es obligatorio.</p>
+        }
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="description">
+          Descripcion
+        </label>
+        <textarea
+          class="min-h-28 w-full resize-y rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="description"
+          formControlName="description"
+          placeholder="Servicios principales, especialidades o informacion del taller"
+        ></textarea>
+
+        @if (fieldIsInvalid('description')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">La descripcion es obligatoria.</p>
+        }
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="address">
+          Direccion
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="address"
+          type="text"
+          formControlName="address"
+          autocomplete="street-address"
+          placeholder="Av. Santos Dumont #1245"
+        />
+
+        @if (fieldIsInvalid('address')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">La direccion es obligatoria.</p>
+        }
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="coverageRadius">
+          Radio de cobertura (km)
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition placeholder:text-[var(--color-placeholder)] focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="coverageRadius"
+          type="number"
+          formControlName="coverageRadius"
+          min="1"
+          placeholder="5"
+        />
+
+        @if (fieldIsInvalid('coverageRadius')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">El radio de cobertura debe ser mayor a 0.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="openingTime">
+          Hora de apertura
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="openingTime"
+          type="time"
+          formControlName="openingTime"
+        />
+
+        @if (fieldIsInvalid('openingTime')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">La hora de apertura es obligatoria.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="closingTime">
+          Hora de cierre
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition focus:border-[var(--color-titulo)] focus:bg-[var(--color-input)] focus:ring-2 focus:ring-[var(--color-titulo)]/10"
+          id="closingTime"
+          type="time"
+          formControlName="closingTime"
+        />
+
+        @if (fieldIsInvalid('closingTime')) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">La hora de cierre es obligatoria.</p>
+        }
+      </div>
+
+      @if (errorMessage) {
+        <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)] md:col-span-2">
+          {{ errorMessage }}
+        </p>
+      }
+
+      <div class="space-y-4 md:col-span-2">
+        <button
+          class="w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)] disabled:cursor-not-allowed disabled:bg-[var(--color-deshabilitado)]"
+          type="submit"
+          [disabled]="isLoading"
+        >
+          {{ isLoading ? 'Registrando...' : 'Registrar taller' }}
+        </button>
+
+        <p class="text-center text-sm text-[var(--color-texto-secundario)]">
+          Quieres volver?
+          <a class="font-bold text-[var(--color-titulo)] hover:text-[var(--color-boton-hover)]" routerLink="/my-workshops">
+            Mis talleres
+          </a>
+        </p>
+      </div>
+    </form>
+  </section>
+</main>

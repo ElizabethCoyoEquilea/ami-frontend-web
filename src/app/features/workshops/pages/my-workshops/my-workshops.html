@@ -23,7 +23,12 @@
               <div>
                 <h2>{{ workshop.name }}</h2>
                 <p>{{ workshop.address }}</p>
-                <p>{{ workshop.phone }}</p>
+                @if (workshop.description) {
+                  <p>{{ workshop.description }}</p>
+                }
+                @if (getSchedule(workshop)) {
+                  <p>{{ getSchedule(workshop) }}</p>
+                }
               </div>
               <span class="status-badge">{{ workshop.status }}</span>
             </div>

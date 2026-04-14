@@ -4,7 +4,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/landing/pages/home/home').then((component) => component.HomeComponent),
+      import('./features/landing/home/home').then((component) => component.HomeComponent),
   },
   {
     path: 'login',
@@ -21,6 +21,27 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/workshops/pages/my-workshops/my-workshops').then(
         (component) => component.MyWorkshopsComponent,
+      ),
+  },
+  {
+    path: 'register-workshop',
+    loadComponent: () =>
+      import('./features/workshops/pages/register-workshop/register-workshop').then(
+        (component) => component.RegisterWorkshopComponent,
+      ),
+  },
+  {
+    path: 'edit-workshop/:id',
+    loadComponent: () =>
+      import('./features/workshops/pages/edit-workshop/edit-workshop').then(
+        (component) => component.EditWorkshopComponent,
+      ),
+  },
+  {
+    path: 'workshop-detail/:id',
+    loadComponent: () =>
+      import('./features/workshops/pages/workshop-detail/workshop-detail').then(
+        (component) => component.WorkshopDetailComponent,
       ),
   },
   {
