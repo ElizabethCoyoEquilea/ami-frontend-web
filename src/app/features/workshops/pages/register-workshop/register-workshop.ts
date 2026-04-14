@@ -1,17 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-
-interface StoredWorkshop {
-  id: number;
-  name: string;
-  description: string;
-  address: string;
-  coverageRadius: number;
-  openingTime: string;
-  closingTime: string;
-  status: 'Activo' | 'Inactivo';
-}
+import { firstValueFrom } from 'rxjs';
+import { WorkshopService } from '../../../../core/services/workshop.service';
 
 @Component({
   selector: 'app-register-workshop',
@@ -21,8 +12,8 @@ interface StoredWorkshop {
 })
 export class RegisterWorkshopComponent {
   private readonly formBuilder = inject(FormBuilder);
+  private readonly workshopService = inject(WorkshopService);
   private readonly router = inject(Router);
-  private readonly storageKey = 'ami_workshops';
 
   isLoading = false;
   errorMessage = '';
@@ -41,7 +32,7 @@ export class RegisterWorkshopComponent {
     return field.invalid && (field.dirty || field.touched);
   }
 
-  submitWorkshop(): void {
+  async submitWorkshop(): Promise<void> {
     this.errorMessage = '';
 
     if (this.workshopForm.invalid) {
@@ -58,33 +49,33 @@ export class RegisterWorkshopComponent {
 
     this.isLoading = true;
 
-    const workshops = this.getStoredWorkshops();
-    const workshop: StoredWorkshop = {
-      id: Date.now(),
-      name: formValue.name,
-      description: formValue.description,
-      address: formValue.address,
-      coverageRadius: formValue.coverageRadius,
-      openingTime: formValue.openingTime,
-      closingTime: formValue.closingTime,
-      status: 'Activo',
+    const workshop = {
+      nombre: formValue.name,
+      descripcion: formValue.description,
+      radio_cobertura: Number(formValue.coverageRadius),
+      calificacion: 0,
+      direccion: formValue.address,
+      longitud: null,
+      latitud: null,
+      horario_inicio: this.toBackendTime(formValue.openingTime),
+      horario_fin: this.toBackendTime(formValue.closingTime),
     };
 
-    localStorage.setItem(this.storageKey, JSON.stringify([...workshops, workshop]));
-    this.router.navigateByUrl('/my-workshops');
+    try {
+      await firstValueFrom(this.workshopService.createWorkshop(workshop));
+      await this.router.navigateByUrl('/my-workshops');
+    } catch {
+      this.errorMessage = 'No se pudo registrar el taller. Intentalo nuevamente.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  private getStoredWorkshops(): StoredWorkshop[] {
-    const storedWorkshops = localStorage.getItem(this.storageKey);
-
-    if (!storedWorkshops) {
-      return [];
+  private toBackendTime(time: string): string {
+    if (time.length === 5) {
+      return `${time}:00`;
     }
 
-    try {
-      return JSON.parse(storedWorkshops) as StoredWorkshop[];
-    } catch {
-      return [];
-    }
+    return time;
   }
 }
