@@ -14,10 +14,10 @@ interface SidebarItem {
 })
 export class SidebarComponent {
   readonly items: SidebarItem[] = [
-    { label: 'Panel', route: '/dashboard' },
-    { label: 'Personal', route: '/staff' },
-    { label: 'Servicios', route: '/services' },
-    { label: 'Operaciones', route: '/operations' },
-    { label: 'Reportes', route: '/reports' },
+    { label: 'Panel', route: '/admin/dashboard' },
+    { label: 'Personal', route: '/admin/staff' },
+    { label: 'Servicios', route: '/admin/services' },
+    { label: 'Operaciones', route: '/admin/operations' },
+    { label: 'Reportes', route: '/admin/reports' },
   ];
 }

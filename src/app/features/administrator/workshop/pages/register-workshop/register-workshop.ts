@@ -63,7 +63,7 @@ export class RegisterWorkshopComponent {
 
     try {
       await firstValueFrom(this.workshopService.createWorkshop(workshop));
-      await this.router.navigateByUrl('/my-workshops');
+      await this.router.navigateByUrl('/admin/my-workshops');
     } catch {
       this.errorMessage = 'No se pudo registrar el taller. Intentalo nuevamente.';
     } finally {

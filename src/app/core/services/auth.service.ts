@@ -14,8 +14,8 @@ export class AuthService {
       .post<{ access_token: string; token_type?: string }, { email: string; contrasena: string }>('/auth/login', credentials)
       .pipe(
         tap((response) => {
-          localStorage.setItem(this.tokenKey, response.access_token);
-          console.log('Token almacenado:', response.access_token);
+          sessionStorage.setItem(this.tokenKey, response.access_token);
+          localStorage.removeItem(this.tokenKey);
         }),
       );
   }
@@ -48,13 +48,53 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.tokenKey);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    const token = sessionStorage.getItem(this.tokenKey);
+
+    if (!token) {
+      localStorage.removeItem(this.tokenKey);
+      return null;
+    }
+
+    if (!this.isValidToken(token)) {
+      this.logout();
+      return null;
+    }
+
+    return token;
   }
 
   isAuthenticated(): boolean {
     return Boolean(this.getToken());
+  }
+
+  private isValidToken(token: string): boolean {
+    const payload = this.decodeTokenPayload(token);
+
+    if (!payload?.exp) {
+      return false;
+    }
+
+    return payload.exp * 1000 > Date.now();
+  }
+
+  private decodeTokenPayload(token: string): { exp?: number } | null {
+    try {
+      const payload = token.split('.')[1];
+
+      if (!payload) {
+        return null;
+      }
+
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decodedPayload = atob(base64);
+
+      return JSON.parse(decodedPayload) as { exp?: number };
+    } catch {
+      return null;
+    }
   }
 }

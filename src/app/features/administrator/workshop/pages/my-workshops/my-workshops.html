@@ -7,7 +7,7 @@
         <h1>Mis talleres</h1>
       </div>
 
-      <a class="primary-action" routerLink="/register-workshop">Registrar nuevo taller</a>
+      <a class="primary-action" routerLink="/admin/register-workshop">Registrar nuevo taller</a>
     </header>
 
     @if (workshops.length === 0) {
@@ -34,9 +34,9 @@
             </div>
 
             <div class="card-actions">
-              <a class="secondary-action" [routerLink]="['/view-workshop', workshop.id]">Ver</a>
-              <a class="secondary-action" [routerLink]="['/edit-workshop', workshop.id]">Editar</a>
-              <a class="primary-action" [routerLink]="['/view-workshop', workshop.id]">Entrar</a>
+              <a class="secondary-action" [routerLink]="['/admin/view-workshop', workshop.id]">Ver</a>
+              <a class="secondary-action" [routerLink]="['/admin/edit-workshop', workshop.id]">Editar</a>
+              <a class="primary-action" [routerLink]="['/admin/view-workshop', workshop.id]">Entrar</a>
             </div>
           </article>
         }

@@ -128,7 +128,7 @@ export class LoginComponent implements OnDestroy {
 
     try {
       await firstValueFrom(this.authService.login(this.loginForm.getRawValue()));
-      await this.router.navigateByUrl('/my-workshops');
+      await this.router.navigateByUrl('/admin/my-workshops');
     } catch {
       this.loginForm.reset();
       this.loginForm.markAsPristine();
