@@ -42,8 +42,8 @@ export class AuthService {
       });
   }
 
-  resetPassword(email: string): Observable<{ message: string }> {
-    return this.apiService.post<{ message: string }, { email: string }>('/auth/reset-password', { email });
+  resetPassword(email: string): Observable<{ result: boolean; message: string }> {
+    return this.apiService.post<{ result: boolean; message: string }, { email: string }>('/auth/reset-password', { email });
   }
 
   logout(): void {
