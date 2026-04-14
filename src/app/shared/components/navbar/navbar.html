@@ -16,14 +16,8 @@
         Registrarse
       </a>
     } @else {
-      <a
-        class="rounded-md px-3 py-2 text-sm font-bold text-[var(--color-blanco)] hover:bg-white/10"
-        routerLink="/panel"
-      >
-        Panel
-      </a>
       <button
-        class="rounded-md bg-[var(--color-boton)] px-3 py-2 text-sm font-bold text-[var(--color-blanco)] hover:bg-[var(--color-boton-hover)]"
+        class="rounded-md bg-[var(--color-boton-navbar)] px-3 py-2 text-sm font-bold text-[var(--color-blanco)] hover:bg-[var(--color-boton-hover)]"
         type="button"
         (click)="logout()"
       >
