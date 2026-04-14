@@ -17,6 +17,7 @@ export class RegisterWorkshopComponent {
 
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
 
   workshopForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
@@ -34,6 +35,7 @@ export class RegisterWorkshopComponent {
 
   async submitWorkshop(): Promise<void> {
     this.errorMessage = '';
+    this.successMessage = '';
 
     if (this.workshopForm.invalid) {
       this.workshopForm.markAllAsTouched();
@@ -63,9 +65,11 @@ export class RegisterWorkshopComponent {
 
     try {
       await firstValueFrom(this.workshopService.createWorkshop(workshop));
-      await this.router.navigateByUrl('/admin/my-workshops');
-    } catch {
-      this.errorMessage = 'No se pudo registrar el taller. Intentalo nuevamente.';
+      this.successMessage = 'Taller registrado correctamente. Volviendo a Mis talleres...';
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      await this.router.navigate(['/admin/my-workshops'], { queryParams: { created: 'true' } });
+    } catch (error) {
+      this.errorMessage = this.getErrorMessage(error);
     } finally {
       this.isLoading = false;
     }
@@ -77,5 +81,14 @@ export class RegisterWorkshopComponent {
     }
 
     return time;
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (typeof error === 'object' && error && 'error' in error) {
+      const backendError = (error as { error?: { detail?: string; message?: string; error?: string } }).error;
+      return backendError?.detail ?? backendError?.message ?? backendError?.error ?? 'No se pudo registrar el taller.';
+    }
+
+    return 'No se pudo registrar el taller. Intentalo nuevamente.';
   }
 }

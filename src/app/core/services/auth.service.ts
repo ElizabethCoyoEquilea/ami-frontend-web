@@ -67,6 +67,32 @@ export class AuthService {
     return token;
   }
 
+  getCurrentUserId(): number | null {
+    const token = this.getToken();
+
+    if (!token) {
+      return null;
+    }
+
+    const payload = this.decodeTokenPayload(token);
+
+    if (!payload) {
+      return null;
+    }
+
+    const userId =
+      payload['id_usuario'] ??
+      payload['idUsuario'] ??
+      payload['usuario_id'] ??
+      payload['user_id'] ??
+      payload['id'] ??
+      payload['sub'];
+
+    const numericUserId = Number(userId);
+
+    return Number.isInteger(numericUserId) && numericUserId > 0 ? numericUserId : null;
+  }
+
   isAuthenticated(): boolean {
     return Boolean(this.getToken());
   }
@@ -74,14 +100,16 @@ export class AuthService {
   private isValidToken(token: string): boolean {
     const payload = this.decodeTokenPayload(token);
 
-    if (!payload?.exp) {
+    const expiresAt = Number(payload?.['exp']);
+
+    if (!Number.isInteger(expiresAt)) {
       return false;
     }
 
-    return payload.exp * 1000 > Date.now();
+    return expiresAt * 1000 > Date.now();
   }
 
-  private decodeTokenPayload(token: string): { exp?: number } | null {
+  private decodeTokenPayload(token: string): Record<string, unknown> | null {
     try {
       const payload = token.split('.')[1];
 
@@ -92,7 +120,7 @@ export class AuthService {
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
       const decodedPayload = atob(base64);
 
-      return JSON.parse(decodedPayload) as { exp?: number };
+      return JSON.parse(decodedPayload) as Record<string, unknown>;
     } catch {
       return null;
     }

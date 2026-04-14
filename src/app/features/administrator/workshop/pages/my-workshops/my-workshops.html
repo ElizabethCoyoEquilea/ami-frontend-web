@@ -10,14 +10,31 @@
       <a class="primary-action" routerLink="/admin/register-workshop">Registrar nuevo taller</a>
     </header>
 
-    @if (workshops.length === 0) {
+    @if (successMessage()) {
+      <section class="feedback-state success-state">
+        <p>{{ successMessage() }}</p>
+      </section>
+    }
+
+    @if (isLoading()) {
+      <section class="empty-state">
+        <h2>Cargando talleres...</h2>
+        <p>Estamos obteniendo los talleres asociados a tu usuario.</p>
+      </section>
+    } @else if (errorMessage()) {
+      <section class="feedback-state error-state">
+        <h2>No se pudieron cargar los talleres</h2>
+        <p>{{ errorMessage() }}</p>
+        <button class="secondary-action" type="button" (click)="loadWorkshops()">Reintentar</button>
+      </section>
+    } @else if (workshops().length === 0) {
       <section class="empty-state">
         <h2>Aun no tienes talleres registrados</h2>
+        <p>Cuando registres tu primer taller, aparecera en esta lista.</p>
       </section>
     } @else {
-
       <section class="workshops-grid">
-        @for (workshop of workshops; track workshop.id) {
+        @for (workshop of workshops(); track workshop.id) {
           <article class="workshop-card">
             <div class="card-top">
               <div>
