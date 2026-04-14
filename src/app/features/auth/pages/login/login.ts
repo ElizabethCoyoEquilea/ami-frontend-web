@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -9,10 +10,11 @@ import { AuthService } from '../../../../core/services/auth.service';
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private resetPasswordCloseTimer?: ReturnType<typeof setTimeout>;
 
   isLoading = false;
   errorMessage = '';
@@ -45,7 +47,12 @@ export class LoginComponent {
     return emailControl.invalid && (emailControl.dirty || emailControl.touched);
   }
 
+  ngOnDestroy(): void {
+    this.clearResetPasswordCloseTimer();
+  }
+
   openResetPasswordModal(): void {
+    this.clearResetPasswordCloseTimer();
     this.resetPasswordErrorMessage = '';
     this.resetPasswordSuccessMessage = '';
     this.showResetPasswordModal = true;
@@ -59,10 +66,25 @@ export class LoginComponent {
       return;
     }
 
+    this.clearResetPasswordCloseTimer();
     this.showResetPasswordModal = false;
     this.resetPasswordForm.reset();
     this.resetPasswordErrorMessage = '';
     this.resetPasswordSuccessMessage = '';
+  }
+
+  private clearResetPasswordCloseTimer(): void {
+    if (this.resetPasswordCloseTimer) {
+      clearTimeout(this.resetPasswordCloseTimer);
+      this.resetPasswordCloseTimer = undefined;
+    }
+  }
+
+  private scheduleResetPasswordModalClose(): void {
+    this.clearResetPasswordCloseTimer();
+    this.resetPasswordCloseTimer = setTimeout(() => {
+      this.closeResetPasswordModal();
+    }, 5000);
   }
 
   submitResetPassword(): void {
@@ -79,7 +101,13 @@ export class LoginComponent {
     this.authService.resetPassword(this.resetPasswordForm.getRawValue().email).subscribe({
       next: (response) => {
         this.resetPasswordLoading = false;
-        this.resetPasswordSuccessMessage = response.message || 'Revisa tu correo para continuar con el cambio de contrasena.';
+        if (response.result) {
+          this.resetPasswordSuccessMessage = response.message || 'Revisa tu correo para continuar con el cambio de contrasena.';
+          this.scheduleResetPasswordModalClose();
+          return;
+        }
+
+        this.resetPasswordErrorMessage = response.message || 'No se pudo enviar la solicitud. Intentalo nuevamente.';
       },
       error: () => {
         this.resetPasswordLoading = false;
@@ -88,7 +116,7 @@ export class LoginComponent {
     });
   }
 
-  submitLogin(): void {
+  async submitLogin(): Promise<void> {
     this.errorMessage = '';
 
     if (this.loginForm.invalid) {
@@ -98,15 +126,16 @@ export class LoginComponent {
 
     this.isLoading = true;
 
-    this.authService.login(this.loginForm.getRawValue()).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.router.navigateByUrl('/');
-      },
-      error: () => {
-        this.isLoading = false;
-        this.errorMessage = 'No se pudo iniciar sesion. Revisa tus credenciales.';
-      },
-    });
+    try {
+      await firstValueFrom(this.authService.login(this.loginForm.getRawValue()));
+      await this.router.navigateByUrl('/');
+    } catch {
+      this.loginForm.reset();
+      this.loginForm.markAsPristine();
+      this.loginForm.markAsUntouched();
+      this.errorMessage = 'No se pudo iniciar sesion. Revisa tus credenciales.';
+    } finally {
+      this.isLoading = false;
+    }
   }
 }
