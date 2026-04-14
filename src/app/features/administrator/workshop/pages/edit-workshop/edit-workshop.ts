@@ -105,7 +105,7 @@ export class EditWorkshopComponent {
       : [...storedWorkshops, updatedWorkshop];
 
     localStorage.setItem(this.storageKey, JSON.stringify(nextWorkshops));
-    this.router.navigateByUrl('/my-workshops');
+    this.router.navigateByUrl('/admin/my-workshops');
   }
 
   private findWorkshop(): Workshop | undefined {

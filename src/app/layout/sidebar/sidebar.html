@@ -1,0 +1,20 @@
+<aside class="sidebar">
+  <div>
+    <span class="brand">AMI</span>
+
+    <nav class="nav-list" aria-label="Menu del taller">
+      @for (item of items; track item.route) {
+        <a
+          class="nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </div>
+
+  <a class="switch-workshop" routerLink="/admin/my-workshops">Cambiar de Taller</a>
+</aside>

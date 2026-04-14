@@ -95,6 +95,7 @@ h2 {
 }
 
 .empty-state,
+.feedback-state,
 .summary-card,
 .workshop-card {
   border: 1px solid var(--color-borde);
@@ -116,6 +117,44 @@ h2 {
   max-width: 520px;
   color: var(--color-texto-secundario);
   line-height: 1.6;
+}
+
+.feedback-state {
+  margin-bottom: 20px;
+  padding: 18px 20px;
+}
+
+.feedback-state h2 {
+  margin-bottom: 8px;
+}
+
+.feedback-state p {
+  color: var(--color-texto-secundario);
+  line-height: 1.6;
+}
+
+.error-state {
+  border-color: var(--color-error-borde);
+  background: var(--color-error-fondo);
+}
+
+.error-state h2,
+.error-state p {
+  color: var(--color-error);
+}
+
+.error-state .secondary-action {
+  margin-top: 16px;
+}
+
+.success-state {
+  border-color: rgba(22, 101, 52, 0.25);
+  background: rgba(220, 252, 231, 0.8);
+}
+
+.success-state p {
+  color: #166534;
+  font-weight: 800;
 }
 
 .empty-icon {

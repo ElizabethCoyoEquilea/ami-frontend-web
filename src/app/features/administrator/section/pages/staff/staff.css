@@ -1,0 +1,15 @@
+.section-layout {
+  background: var(--color-fondo);
+  display: flex;
+  min-height: 100vh;
+}
+
+.section-content {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .section-layout {
+    flex-direction: column;
+  }
+}

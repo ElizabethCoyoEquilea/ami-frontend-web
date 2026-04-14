@@ -115,6 +115,12 @@
         </p>
       }
 
+      @if (successMessage) {
+        <p class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm font-bold text-green-700 md:col-span-2">
+          {{ successMessage }}
+        </p>
+      }
+
       <div class="space-y-4 md:col-span-2">
         <button
           class="w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)] disabled:cursor-not-allowed disabled:bg-[var(--color-deshabilitado)]"
@@ -126,7 +132,7 @@
 
         <p class="text-center text-sm text-[var(--color-texto-secundario)]">
           Quieres volver?
-          <a class="font-bold text-[var(--color-titulo)] hover:text-[var(--color-boton-hover)]" routerLink="/my-workshops">
+          <a class="font-bold text-[var(--color-titulo)] hover:text-[var(--color-boton-hover)]" routerLink="/admin/my-workshops">
             Mis talleres
           </a>
         </p>
