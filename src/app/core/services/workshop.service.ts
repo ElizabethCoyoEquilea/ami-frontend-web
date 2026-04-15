@@ -56,7 +56,7 @@ export class WorkshopService {
   }
 
   getWorkshopById(workshopId: number): Observable<WorkshopResponse> {
-    return this.apiService.get<WorkshopResponse>(`/talleres/${workshopId}`);
+    return this.apiService.get<WorkshopResponse>(`/talleres/${workshopId}/detalle`);
   }
 
   updateWorkshop(workshopId: number, workshop: UpdateWorkshopRequest): Observable<unknown> {

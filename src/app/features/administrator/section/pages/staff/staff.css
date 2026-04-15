@@ -1,15 +1,229 @@
+:host {
+  --admin-navbar-height: 4.5rem;
+  display: block;
+}
+
+app-navbar {
+  display: block;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
 .section-layout {
   background: var(--color-fondo);
   display: flex;
-  min-height: 100vh;
+  margin-top: var(--admin-navbar-height);
+  min-height: calc(100vh - 4.5rem);
 }
 
 .section-content {
   flex: 1;
+  margin-left: 17rem;
+  padding: 2rem;
+}
+
+.staff-shell {
+  max-width: 64rem;
+}
+
+.staff-header {
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  color: var(--color-titulo);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.staff-header h1 {
+  color: var(--color-titulo);
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.staff-header p:last-child {
+  color: var(--color-texto-secundario);
+  margin: 0.5rem 0 0;
+}
+
+.chrome-tabs {
+  align-items: end;
+  display: flex;
+  gap: 0.25rem;
+  overflow: visible;
+  padding-left: 0.5rem;
+}
+
+.chrome-tab {
+  background: #d7e0e7;
+  border: 1px solid var(--color-borde);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 800;
+  min-height: 2.75rem;
+  padding: 0.75rem 1.25rem;
+  position: relative;
+  white-space: nowrap;
+}
+
+.chrome-tab.active {
+  background: var(--color-formulario);
+  color: var(--color-titulo);
+  margin-bottom: -1px;
+  z-index: 1;
+}
+
+.tab-panel {
+  background: var(--color-formulario);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 2rem rgba(11, 31, 77, 0.08);
+  min-height: 18rem;
+  padding: 1.5rem;
+}
+
+.invite-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 32rem;
+}
+
+.invite-form label {
+  color: var(--color-texto-secundario);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.invite-form input {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto);
+  outline: none;
+  padding: 0.75rem 0.85rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  width: 100%;
+}
+
+.invite-form input:focus {
+  border-color: var(--color-titulo);
+  box-shadow: 0 0 0 0.2rem rgba(11, 31, 77, 0.1);
+}
+
+.invite-form button {
+  background: var(--color-boton);
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--color-blanco);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.8rem 1rem;
+  width: fit-content;
+}
+
+.invite-form button:hover {
+  background: var(--color-boton-hover);
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.success-message {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  color: #16703b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+}
+
+.providers-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.providers-header,
+.provider-row {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.1fr 1.1fr 10rem;
+}
+
+.providers-header {
+  color: var(--color-texto-secundario);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0 0.85rem;
+  text-transform: uppercase;
+}
+
+.provider-row {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto);
+  padding: 0.85rem;
+}
+
+.provider-name {
+  color: var(--color-titulo);
+  font-weight: 800;
+}
+
+.status-pill {
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.4rem 0.7rem;
+  text-align: center;
+}
+
+.status-pill.available {
+  background: #ecfdf3;
+  color: #16703b;
+}
+
+.status-pill.busy {
+  background: var(--color-error-fondo);
+  color: var(--color-error);
 }
 
 @media (max-width: 768px) {
   .section-layout {
     flex-direction: column;
+  }
+
+  .section-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .providers-header {
+    display: none;
+  }
+
+  .provider-row {
+    align-items: start;
+    grid-template-columns: 1fr;
   }
 }

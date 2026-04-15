@@ -1,1 +1,19 @@
-/* Los estilos visuales del registro de taller estan definidos con TailwindCSS en el template. */
+/* Los estilos visuales principales del registro de taller estan definidos con TailwindCSS en el template. */
+
+:host ::ng-deep .workshop-map-marker {
+  align-items: center;
+  background: var(--color-boton-navbar);
+  border: 3px solid var(--color-blanco);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
+  display: flex;
+  justify-content: center;
+}
+
+:host ::ng-deep .workshop-map-marker span {
+  background: var(--color-blanco);
+  border-radius: 999px;
+  display: block;
+  height: 6px;
+  width: 6px;
+}
