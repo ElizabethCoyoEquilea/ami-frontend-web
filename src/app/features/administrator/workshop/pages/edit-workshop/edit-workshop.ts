@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import * as L from 'leaflet';
 import { firstValueFrom, timeout } from 'rxjs';
 import { WorkshopResponse, WorkshopService } from '../../../../../core/services/workshop.service';
 
@@ -25,20 +26,34 @@ interface Workshop {
   templateUrl: './edit-workshop.html',
   styleUrl: './edit-workshop.css',
 })
-export class EditWorkshopComponent implements OnInit {
+export class EditWorkshopComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly workshopService = inject(WorkshopService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
+  private readonly defaultMapCenter: L.LatLngExpression = [-17.7833, -63.1821];
+  private readonly locationIcon = L.divIcon({
+    className: 'workshop-map-marker',
+    html: '<span></span>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
 
   private workshopId = Number(this.route.snapshot.paramMap.get('id'));
   private currentWorkshop?: Workshop;
+  private map?: L.Map;
+  private marker?: L.Marker;
+
+  @ViewChild('workshopMap') private workshopMap?: ElementRef<HTMLElement>;
 
   isLoading = signal(false);
   isSaving = signal(false);
   errorMessage = signal('');
   loadFailed = signal(false);
   workshopNotFound = signal(false);
+  isMapVisible = false;
+  selectedLocation: { latitude: number; longitude: number } | null = null;
 
   workshopForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
@@ -57,6 +72,10 @@ export class EditWorkshopComponent implements OnInit {
     }
 
     void this.loadWorkshop();
+  }
+
+  ngOnDestroy(): void {
+    this.map?.remove();
   }
 
   async loadWorkshop(): Promise<void> {
@@ -103,11 +122,23 @@ export class EditWorkshopComponent implements OnInit {
       closingTime: workshop.closingTime,
       isActive: workshop.activeState === 'Activo',
     });
+
+    if (workshop.latitude !== null && workshop.longitude !== null) {
+      this.selectedLocation = {
+        latitude: this.roundCoordinate(workshop.latitude),
+        longitude: this.roundCoordinate(workshop.longitude),
+      };
+    }
   }
 
   fieldIsInvalid(fieldName: keyof typeof this.workshopForm.controls): boolean {
     const field = this.workshopForm.controls[fieldName];
     return field.invalid && (field.dirty || field.touched);
+  }
+
+  showLocationPicker(): void {
+    this.isMapVisible = true;
+    setTimeout(() => this.initializeMap());
   }
 
   async submitWorkshop(): Promise<void> {
@@ -137,8 +168,8 @@ export class EditWorkshopComponent implements OnInit {
       radio_cobertura: Number(formValue.coverageRadius),
       calificacion: this.currentWorkshop?.rating ?? 0,
       direccion: formValue.address,
-      longitud: this.currentWorkshop?.longitude ?? null,
-      latitud: this.currentWorkshop?.latitude ?? null,
+      longitud: this.selectedLocation?.longitude ?? this.currentWorkshop?.longitude ?? null,
+      latitud: this.selectedLocation?.latitude ?? this.currentWorkshop?.latitude ?? null,
       horario_inicio: this.toBackendTime(formValue.openingTime),
       horario_fin: this.toBackendTime(formValue.closingTime),
       estado: this.currentWorkshop?.backendState,
@@ -182,6 +213,66 @@ export class EditWorkshopComponent implements OnInit {
 
   private toDisplayTime(time: string): string {
     return time?.length >= 5 ? time.slice(0, 5) : time;
+  }
+
+  private initializeMap(): void {
+    const mapElement = this.workshopMap?.nativeElement;
+
+    if (!mapElement) {
+      return;
+    }
+
+    if (this.map) {
+      this.map.invalidateSize();
+      return;
+    }
+
+    const center: L.LatLngExpression = this.selectedLocation
+      ? [this.selectedLocation.latitude, this.selectedLocation.longitude]
+      : this.defaultMapCenter;
+
+    this.map = L.map(mapElement, {
+      center,
+      zoom: 13,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.map);
+
+    this.map.on('click', (event: L.LeafletMouseEvent) => {
+      this.ngZone.run(() => this.setSelectedLocation(event.latlng.lat, event.latlng.lng));
+    });
+
+    if (this.selectedLocation) {
+      this.setSelectedLocation(this.selectedLocation.latitude, this.selectedLocation.longitude);
+    }
+
+    setTimeout(() => this.map?.invalidateSize());
+  }
+
+  private setSelectedLocation(latitude: number, longitude: number): void {
+    const roundedLatitude = this.roundCoordinate(latitude);
+    const roundedLongitude = this.roundCoordinate(longitude);
+    const markerPosition: L.LatLngExpression = [roundedLatitude, roundedLongitude];
+
+    this.selectedLocation = {
+      latitude: roundedLatitude,
+      longitude: roundedLongitude,
+    };
+
+    if (this.marker) {
+      this.marker.setLatLng(markerPosition);
+      return;
+    }
+
+    if (this.map) {
+      this.marker = L.marker(markerPosition, { icon: this.locationIcon }).addTo(this.map);
+    }
+  }
+
+  private roundCoordinate(coordinate: number): number {
+    return Number(coordinate.toFixed(6));
   }
 
   private normalizeWorkshopResponse(response: WorkshopResponse[] | { value?: WorkshopResponse[] }): WorkshopResponse[] {

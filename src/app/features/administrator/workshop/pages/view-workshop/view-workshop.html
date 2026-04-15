@@ -6,10 +6,16 @@
       <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Informacion registrada del taller.</p>
     </div>
 
-    @if (workshopNotFound) {
+    @if (isLoading()) {
+      <div class="space-y-4">
+        <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-sm text-[var(--color-texto)]">
+          Cargando datos del taller...
+        </p>
+      </div>
+    } @else if (workshopNotFound() || errorMessage()) {
       <div class="space-y-4">
         <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)]">
-          No se encontro el taller seleccionado.
+          {{ errorMessage() || 'No se encontro el taller seleccionado.' }}
         </p>
 
         <a class="block w-full rounded-md bg-[var(--color-boton)] px-4 py-2.5 text-center font-bold text-[var(--color-blanco)] transition hover:bg-[var(--color-boton-hover)]" routerLink="/admin/my-workshops">
@@ -21,23 +27,32 @@
         <div class="md:col-span-2">
           <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Nombre</p>
           <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
-            {{ workshop?.name }}
+            {{ workshop()?.name }}
           </p>
         </div>
 
         <div class="md:col-span-2">
           <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Descripcion</p>
           <p class="min-h-28 rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
-            {{ workshop?.description }}
+            {{ workshop()?.description }}
           </p>
         </div>
 
         <div class="md:col-span-2">
           <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Direccion</p>
           <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
-            {{ workshop?.address }}
+            {{ workshop()?.address }}
           </p>
         </div>
+
+        @if (hasLocation) {
+          <div class="md:col-span-2">
+            <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Ubicacion</p>
+            <div class="overflow-hidden rounded-md border border-[var(--color-borde)]">
+              <div #workshopMap class="h-80 w-full"></div>
+            </div>
+          </div>
+        }
 
         <div class="md:col-span-2">
           <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Radio de cobertura</p>
@@ -63,7 +78,7 @@
         <div>
           <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Disponibilidad</p>
           <p class="rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)]">
-            {{ workshop?.status }}
+            {{ workshop()?.status }}
           </p>
         </div>
 

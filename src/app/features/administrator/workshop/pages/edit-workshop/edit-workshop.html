@@ -94,6 +94,34 @@
           }
         </div>
 
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]">
+            Ubicacion del negocio
+          </label>
+
+          <button
+            class="rounded-md border border-[var(--color-boton)] px-4 py-2 text-sm font-bold text-[var(--color-boton)] transition hover:bg-[var(--color-boton)] hover:text-[var(--color-blanco)]"
+            type="button"
+            (click)="showLocationPicker()"
+          >
+            Cambiar ubicacion
+          </button>
+
+          @if (selectedLocation) {
+            <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">
+              Latitud: {{ selectedLocation.latitude }} | Longitud: {{ selectedLocation.longitude }}
+            </p>
+          } @else {
+            <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Marca el nuevo punto exacto del negocio en el mapa.</p>
+          }
+
+          @if (isMapVisible) {
+            <div class="mt-4 overflow-hidden rounded-md border border-[var(--color-borde)]">
+              <div #workshopMap class="h-80 w-full"></div>
+            </div>
+          }
+        </div>
+
         <div>
           <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="openingTime">
             Hora de apertura
