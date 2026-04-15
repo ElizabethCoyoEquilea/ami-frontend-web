@@ -31,7 +31,7 @@ export class AuthService {
       documento: string;
     };
   }): Observable<{ registered: boolean } | boolean> {
-    return this.apiService.post<{ registered: boolean } | boolean, typeof userData>('/usuarios/register/admin', userData);
+    return this.apiService.post<{ registered: boolean } | boolean, typeof userData>('/usuarios/register', userData);
   }
 
   verifyCode(email: string, codigo: string): Observable<{ message: string }> {

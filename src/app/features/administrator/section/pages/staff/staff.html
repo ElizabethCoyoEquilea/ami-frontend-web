@@ -2,5 +2,86 @@
 
 <main class="section-layout">
   <app-sidebar></app-sidebar>
-  <section class="section-content"></section>
+  <section class="section-content">
+    <div class="staff-shell">
+      <div class="staff-header">
+        <p class="eyebrow">Personal</p>
+        <h1>Gestion de proveedores de servicio</h1>
+        <p>Invita nuevos proveedores y revisa la disponibilidad del equipo del taller.</p>
+      </div>
+
+      <div class="chrome-tabs" role="tablist" aria-label="Secciones de personal">
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'invite'"
+          [attr.aria-selected]="activeTab() === 'invite'"
+          (click)="setActiveTab('invite')"
+        >
+          Invitar Proveedor de servicio
+        </button>
+
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'list'"
+          [attr.aria-selected]="activeTab() === 'list'"
+          (click)="setActiveTab('list')"
+        >
+          Lista de Proveedores de Servicio
+        </button>
+      </div>
+
+      <div class="tab-panel">
+        @if (activeTab() === 'invite') {
+          <form class="invite-form" [formGroup]="invitationForm" (ngSubmit)="sendInvitation()">
+            <div>
+              <label for="email">Gmail del proveedor</label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                placeholder="proveedor@gmail.com"
+              />
+
+              @if (emailIsInvalid()) {
+                <p class="field-error">Ingresa un correo valido.</p>
+              }
+            </div>
+
+            <button type="submit">Enviar Invitacion</button>
+
+            @if (invitationMessage()) {
+              <p class="success-message">{{ invitationMessage() }}</p>
+            }
+          </form>
+        } @else {
+          <div class="providers-list">
+            <div class="providers-header">
+              <span>Nombre</span>
+              <span>Especialidad</span>
+              <span>Estado</span>
+            </div>
+
+            @for (provider of serviceProviders; track provider.name) {
+              <div class="provider-row">
+                <span class="provider-name">{{ provider.name }}</span>
+                <span>{{ provider.specialty }}</span>
+                <span
+                  class="status-pill"
+                  [class.available]="provider.status === 'Disponible'"
+                  [class.busy]="provider.status === 'Ocupado'"
+                >
+                  {{ provider.status }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
 </main>

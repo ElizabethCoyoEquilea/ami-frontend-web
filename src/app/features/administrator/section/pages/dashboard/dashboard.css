@@ -1,15 +1,35 @@
+:host {
+  --admin-navbar-height: 4.5rem;
+  display: block;
+}
+
+app-navbar {
+  display: block;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
 .section-layout {
   background: var(--color-fondo);
   display: flex;
+  margin-top: var(--admin-navbar-height);
   min-height: calc(100vh - 4.5rem);
 }
 
 .section-content {
   flex: 1;
+  margin-left: 17rem;
 }
 
 @media (max-width: 768px) {
   .section-layout {
     flex-direction: column;
+  }
+
+  .section-content {
+    margin-left: 0;
   }
 }
