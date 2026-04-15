@@ -18,6 +18,11 @@ export interface CreateWorkshopTemporaryRequest extends CreateWorkshopRequest {
   id_usuario: number;
 }
 
+export interface UpdateWorkshopRequest extends CreateWorkshopRequest {
+  estado?: string;
+  activo: boolean;
+}
+
 export interface WorkshopResponse {
   id?: number;
   id_taller?: number;
@@ -48,6 +53,14 @@ export class WorkshopService {
 
   createWorkshop(workshop: CreateWorkshopRequest): Observable<unknown> {
     return this.apiService.post<unknown, CreateWorkshopRequest>('/talleres', workshop);
+  }
+
+  getWorkshopById(workshopId: number): Observable<WorkshopResponse> {
+    return this.apiService.get<WorkshopResponse>(`/talleres/${workshopId}`);
+  }
+
+  updateWorkshop(workshopId: number, workshop: UpdateWorkshopRequest): Observable<unknown> {
+    return this.apiService.put<unknown, UpdateWorkshopRequest>(`/talleres/${workshopId}`, workshop);
   }
 
   /**
