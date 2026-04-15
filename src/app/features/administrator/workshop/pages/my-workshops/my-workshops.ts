@@ -12,7 +12,8 @@ interface Workshop {
   address: string;
   openingTime?: string;
   closingTime?: string;
-  status: 'Activo' | 'Inactivo';
+  activeState: 'Activo' | 'Inactivo';
+  operationState?: 'Abierto' | 'Cerrado';
 }
 
 @Component({
@@ -72,8 +73,17 @@ export class MyWorkshopsComponent implements OnInit {
       address: workshop.direccion,
       openingTime: this.toDisplayTime(workshop.horario_inicio),
       closingTime: this.toDisplayTime(workshop.horario_fin),
-      status: workshop.activo === false || workshop.estado === 'Inactivo' ? 'Inactivo' : 'Activo',
+      activeState: workshop.activo === false ? 'Inactivo' : 'Activo',
+      operationState: this.mapOperationState(workshop.estado),
     };
+  }
+
+  private mapOperationState(state?: string): 'Abierto' | 'Cerrado' | undefined {
+    if (!state) {
+      return undefined;
+    }
+
+    return state.toLowerCase() === 'abierto' ? 'Abierto' : 'Cerrado';
   }
 
   private normalizeWorkshopResponse(response: WorkshopResponse[] | { value?: WorkshopResponse[] }): WorkshopResponse[] {

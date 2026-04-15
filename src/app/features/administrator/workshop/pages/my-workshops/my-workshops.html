@@ -47,7 +47,16 @@
                   <p>{{ getSchedule(workshop) }}</p>
                 }
               </div>
-              <span class="status-badge">{{ workshop.status }}</span>
+              <div class="badge-stack">
+                <span class="status-badge" [class.inactive-badge]="workshop.activeState === 'Inactivo'">
+                  {{ workshop.activeState }}
+                </span>
+                @if (workshop.operationState) {
+                  <span class="status-badge operation-badge">
+                    {{ workshop.operationState }}
+                  </span>
+                }
+              </div>
             </div>
 
             <div class="card-actions">

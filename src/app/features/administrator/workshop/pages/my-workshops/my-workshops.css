@@ -18,15 +18,6 @@
   margin-bottom: 28px;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--color-texto-secundario);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 h1,
 h2,
 p {
@@ -251,6 +242,9 @@ h2 {
   font-size: 0.75rem;
   font-weight: 800;
 }
+
+.badge-stack { display: grid; gap: 8px; justify-items: end; }
+.inactive-badge { background: var(--color-error-fondo); color: var(--color-error); }
 
 .workshop-info {
   display: grid;
