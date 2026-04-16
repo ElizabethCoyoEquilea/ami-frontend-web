@@ -1,10 +1,10 @@
 <aside class="sidebar">
   <div>
     <nav class="nav-list" aria-label="Menu del taller">
-      @for (item of items; track item.route) {
+      @for (item of items; track item.section) {
         <a
           class="nav-link"
-          [routerLink]="item.route"
+          [routerLink]="getRoute(item.section)"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
         >
