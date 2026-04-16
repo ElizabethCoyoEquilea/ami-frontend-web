@@ -2,5 +2,139 @@
 
 <main class="section-layout">
   <app-sidebar></app-sidebar>
-  <section class="section-content"></section>
+  <section class="section-content">
+    <div class="operations-shell">
+      <div class="operations-header">
+        <p class="eyebrow">Operaciones</p>
+        <h1>Gestion operativa del taller</h1>
+        <p>Revisa solicitudes cercanas, administra asignaciones y consulta servicios realizados.</p>
+      </div>
+
+      <div class="chrome-tabs" role="tablist" aria-label="Secciones de operaciones">
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'requests'"
+          [attr.aria-selected]="activeTab() === 'requests'"
+          (click)="setActiveTab('requests')"
+        >
+          Solicitudes
+        </button>
+
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'assignments'"
+          [attr.aria-selected]="activeTab() === 'assignments'"
+          (click)="setActiveTab('assignments')"
+        >
+          Asignaciones
+        </button>
+
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'services'"
+          [attr.aria-selected]="activeTab() === 'services'"
+          (click)="setActiveTab('services')"
+        >
+          Servicios
+        </button>
+      </div>
+
+      <div class="tab-panel">
+        @if (activeTab() === 'requests') {
+          <div class="panel-heading">
+            <h2>Lista de solicitudes</h2>
+            <p>Cercanas al radio de atencion.</p>
+          </div>
+
+          <div class="requests-list">
+            <div class="requests-header">
+              <span>Descripcion</span>
+              <span>Prioridad</span>
+              <span>Observaciones</span>
+              <span>Estado</span>
+              <span>Fecha</span>
+              <span>Direccion</span>
+              <span>Accion</span>
+            </div>
+
+            @for (request of requests(); track request.id) {
+              <div class="request-row">
+                <span class="main-text">{{ request.descripcion }}</span>
+                <span class="priority-pill" [class.high]="request.prioridad === 'Alta'">{{ request.prioridad }}</span>
+                <span>{{ request.observaciones }}</span>
+                <span class="status-pill" [class.pending]="request.estado === 'Pendiente'">{{ request.estado }}</span>
+                <span>{{ request.fecha }}</span>
+                <span>{{ request.direccion }}</span>
+                <span class="row-actions">
+                  <button type="button" (click)="acceptRequest(request.id)" [disabled]="request.estado === 'Aceptada'">
+                    Aceptar
+                  </button>
+                </span>
+              </div>
+            }
+          </div>
+        } @else if (activeTab() === 'assignments') {
+          <div class="panel-heading">
+            <h2>Lista de asignaciones</h2>
+            <p>Solicitudes aceptadas por el taller.</p>
+          </div>
+
+          <div class="assignments-list">
+            <div class="assignments-header">
+              <span>Fecha</span>
+              <span>Estado</span>
+              <span>Cotizacion</span>
+              <span>Acciones</span>
+            </div>
+
+            @for (assignment of assignments(); track assignment.id) {
+              <div class="assignment-row">
+                <span>{{ assignment.fecha }}</span>
+                <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de cotizacion'">
+                  {{ assignment.estado }}
+                </span>
+                <span>
+                  <strong>{{ assignment.cotizacion.monto }} Bs</strong>
+                  <span class="quote-description">{{ assignment.cotizacion.descripcion }}</span>
+                </span>
+                <span class="row-actions">
+                  <button type="button" (click)="sendQuote(assignment.id)">Enviar cotizacion</button>
+                  <button type="button" (click)="assignStaff(assignment.id)">Asignar personal</button>
+                </span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="panel-heading">
+            <h2>Lista de servicios realizados</h2>
+            <p>Historial de atenciones finalizadas.</p>
+          </div>
+
+          <div class="completed-services-list">
+            <div class="completed-services-header">
+              <span>Monto total</span>
+              <span>Calificacion</span>
+              <span>Accion</span>
+            </div>
+
+            @for (service of completedServices; track service.id) {
+              <div class="completed-service-row">
+                <span class="main-text">{{ service.montoTotal }} Bs</span>
+                <span>{{ service.calificacion }}/5</span>
+                <span class="row-actions">
+                  <button type="button">Ver detalle servicio</button>
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
 </main>

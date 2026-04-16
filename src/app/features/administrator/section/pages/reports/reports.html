@@ -2,5 +2,103 @@
 
 <main class="section-layout">
   <app-sidebar></app-sidebar>
-  <section class="section-content"></section>
+  <section class="section-content">
+    <div class="reports-shell">
+      <section class="reports-header">
+        <div>
+          <p class="eyebrow">Reportes</p>
+          <h1>Analisis del taller</h1>
+          <p>Consulta servicios realizados, ingresos y desempeño de proveedores por rango de fechas.</p>
+        </div>
+      </section>
+
+      <form class="filter-panel" [formGroup]="dateFilterForm" (ngSubmit)="exportReport()">
+        <div>
+          <label for="startDate">Fecha inicio</label>
+          <input id="startDate" type="date" formControlName="startDate" />
+        </div>
+
+        <div>
+          <label for="endDate">Fecha fin</label>
+          <input id="endDate" type="date" formControlName="endDate" />
+        </div>
+
+        <button type="submit">Exportar reporte</button>
+      </form>
+
+      @if (exportMessage()) {
+        <p class="export-message">{{ exportMessage() }}</p>
+      }
+
+      <section class="reports-grid">
+        <article class="report-panel services-report">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Reporte</p>
+              <h2>Servicios realizados</h2>
+            </div>
+            <span>Operativo</span>
+          </div>
+
+          <div class="metric-grid">
+            @for (metric of serviceMetrics; track metric.label) {
+              <div class="metric-card">
+                <span>{{ metric.label }}</span>
+                <strong>{{ metric.value }}</strong>
+                <p>{{ metric.detail }}</p>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="report-panel income-report">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Reporte</p>
+              <h2>Ingresos</h2>
+            </div>
+            <span>Financiero</span>
+          </div>
+
+          <div class="metric-grid">
+            @for (metric of incomeMetrics; track metric.label) {
+              <div class="metric-card">
+                <span>{{ metric.label }}</span>
+                <strong>{{ metric.value }}</strong>
+                <p>{{ metric.detail }}</p>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="report-panel providers-report">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Reporte</p>
+              <h2>Desempeño de proveedores</h2>
+            </div>
+            <span>Equipo</span>
+          </div>
+
+          <div class="providers-table">
+            <div class="providers-header">
+              <span>Proveedor</span>
+              <span>Servicios</span>
+              <span>Calificacion</span>
+              <span>Ingresos</span>
+            </div>
+
+            @for (provider of providerPerformance; track provider.name) {
+              <div class="provider-row">
+                <span class="provider-name">{{ provider.name }}</span>
+                <span>{{ provider.services }}</span>
+                <span>{{ provider.rating }}/5</span>
+                <span>{{ provider.income }} Bs</span>
+              </div>
+            }
+          </div>
+        </article>
+      </section>
+    </div>
+  </section>
 </main>

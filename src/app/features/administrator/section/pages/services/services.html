@@ -2,5 +2,127 @@
 
 <main class="section-layout">
   <app-sidebar></app-sidebar>
-  <section class="section-content"></section>
+  <section class="section-content">
+    <div class="services-shell">
+      <div class="services-header">
+        <p class="eyebrow">Servicios</p>
+        <h1>Gestion de servicios del taller</h1>
+        <p>Registra nuevos servicios y revisa el catalogo disponible.</p>
+      </div>
+
+      <div class="chrome-tabs" role="tablist" aria-label="Secciones de servicios">
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'register'"
+          [attr.aria-selected]="activeTab() === 'register'"
+          (click)="setActiveTab('register')"
+        >
+          Registrar nuevo servicio
+        </button>
+
+        <button
+          class="chrome-tab"
+          type="button"
+          role="tab"
+          [class.active]="activeTab() === 'catalog'"
+          [attr.aria-selected]="activeTab() === 'catalog'"
+          (click)="setActiveTab('catalog')"
+        >
+          Catalogo de servicios
+        </button>
+      </div>
+
+      <div class="tab-panel">
+        @if (activeTab() === 'register') {
+          <form class="service-form" [formGroup]="serviceForm" (ngSubmit)="registerService()">
+            <div>
+              <label for="nombre">Nombre</label>
+              <input id="nombre" type="text" formControlName="nombre" placeholder="Cambio de aceite" />
+
+              @if (fieldIsInvalid('nombre')) {
+                <p class="field-error">Ingresa el nombre del servicio.</p>
+              }
+            </div>
+
+            <div>
+              <label for="descripcion">Descripcion</label>
+              <textarea
+                id="descripcion"
+                formControlName="descripcion"
+                rows="4"
+                placeholder="Describe que incluye el servicio"
+              ></textarea>
+
+              @if (fieldIsInvalid('descripcion')) {
+                <p class="field-error">Ingresa una descripcion.</p>
+              }
+            </div>
+
+            <div>
+              <label for="categoria">Categoria</label>
+              <input id="categoria" type="text" formControlName="categoria" placeholder="Mantenimiento" />
+
+              @if (fieldIsInvalid('categoria')) {
+                <p class="field-error">Ingresa la categoria.</p>
+              }
+            </div>
+
+            <div>
+              <label for="precio_estandar">Precio estandar</label>
+              <input id="precio_estandar" type="number" min="0.01" step="0.01" formControlName="precio_estandar" />
+
+              @if (fieldIsInvalid('precio_estandar')) {
+                <p class="field-error">Ingresa un precio mayor a 0.</p>
+              }
+            </div>
+
+            <div>
+              <label for="unidad_medida">Unidad de medida</label>
+              <input id="unidad_medida" type="text" formControlName="unidad_medida" placeholder="Servicio" />
+
+              @if (fieldIsInvalid('unidad_medida')) {
+                <p class="field-error">Ingresa la unidad de medida.</p>
+              }
+            </div>
+
+            <button type="submit">Registrar</button>
+
+            @if (registerMessage()) {
+              <p class="success-message">{{ registerMessage() }}</p>
+            }
+          </form>
+        } @else {
+          <div class="services-list">
+            <div class="services-table-header">
+              <span>Nombre</span>
+              <span>Descripcion</span>
+              <span>Precio</span>
+              <span>Estado</span>
+              <span>Acciones</span>
+            </div>
+
+            @for (service of services(); track service.id) {
+              <div class="service-row">
+                <span class="service-name">{{ service.nombre }}</span>
+                <span>{{ service.descripcion }}</span>
+                <span>{{ service.precio_estandar }} / {{ service.unidad_medida }}</span>
+                <span class="status-pill" [class.inactive]="service.estado === 'Inactivo'">
+                  {{ service.estado }}
+                </span>
+                <span class="row-actions">
+                  <button type="button">Ver</button>
+                  <button type="button">Editar</button>
+                  <button type="button" (click)="deactivateService(service.id)" [disabled]="service.estado === 'Inactivo'">
+                    Desactivar
+                  </button>
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
 </main>

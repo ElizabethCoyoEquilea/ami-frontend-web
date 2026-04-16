@@ -22,6 +22,236 @@ app-navbar {
 .section-content {
   flex: 1;
   margin-left: 17rem;
+  padding: 2rem;
+}
+
+.dashboard-shell {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 76rem;
+}
+
+.welcome-panel,
+.panel,
+.kpi-card {
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 2rem rgba(11, 31, 77, 0.08);
+}
+
+.welcome-panel {
+  align-items: center;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  color: var(--color-titulo);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.welcome-panel h1,
+.panel h2 {
+  color: var(--color-titulo);
+  font-weight: 800;
+  margin: 0;
+}
+
+.welcome-panel h1 {
+  font-size: 2rem;
+}
+
+.welcome-panel p,
+.kpi-card p,
+.operation-card p,
+.activity-list p {
+  color: var(--color-texto-secundario);
+  margin: 0.5rem 0 0;
+}
+
+.welcome-metric {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  min-width: 12rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.welcome-metric span,
+.kpi-card span,
+.operation-card span,
+.chart-total,
+.live-pill {
+  color: var(--color-texto-secundario);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.welcome-metric strong {
+  color: #16703b;
+  display: block;
+  font-size: 2.4rem;
+  font-weight: 900;
+}
+
+.kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kpi-card {
+  overflow: hidden;
+  padding: 1rem;
+  position: relative;
+}
+
+.kpi-card::before {
+  content: '';
+  display: block;
+  height: 0.3rem;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.kpi-card.blue::before {
+  background: #2563eb;
+}
+
+.kpi-card.green::before {
+  background: #16a34a;
+}
+
+.kpi-card.orange::before {
+  background: #f97316;
+}
+
+.kpi-card.red::before {
+  background: #dc2626;
+}
+
+.kpi-card strong {
+  color: var(--color-titulo);
+  display: block;
+  font-size: 1.7rem;
+  margin-top: 0.65rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.panel {
+  padding: 1.25rem;
+}
+
+.panel-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.live-pill,
+.chart-total {
+  background: var(--color-input);
+  border-radius: 999px;
+  padding: 0.45rem 0.7rem;
+  white-space: nowrap;
+}
+
+.operations-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operation-card {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  padding: 0.9rem;
+}
+
+.operation-card strong {
+  color: var(--color-titulo);
+  display: block;
+  font-size: 1.8rem;
+  margin-top: 0.35rem;
+}
+
+.activity-list {
+  border-top: 1px solid var(--color-borde);
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+}
+
+.activity-list h3 {
+  color: var(--color-titulo);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.activity-list p {
+  background: var(--color-hover-suave);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.bar-chart {
+  align-items: end;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  min-height: 19rem;
+}
+
+.bar-column {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.bar-value,
+.bar-label {
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.bar-track {
+  align-items: end;
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  display: flex;
+  height: 15rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.bar-fill {
+  background: linear-gradient(180deg, #fc3b01 0%, #2563eb 100%);
+  border-radius: 0.4rem 0.4rem 0 0;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -31,5 +261,25 @@ app-navbar {
 
   .section-content {
     margin-left: 0;
+    padding: 1rem;
+  }
+
+  .welcome-panel,
+  .panel-header {
+    display: grid;
+  }
+
+  .kpi-grid,
+  .dashboard-grid,
+  .operations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bar-chart {
+    overflow-x: auto;
+  }
+
+  .bar-column {
+    min-width: 3.5rem;
   }
 }

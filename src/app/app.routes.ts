@@ -55,51 +55,66 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'dashboard',
-        loadComponent: () =>
-          import('./features/administrator/section/pages/dashboard/dashboard').then(
-            (component) => component.DashboardComponent,
-          ),
+        path: 'workshop/:id',
+        children: [
+          {
+            path: '',
+            redirectTo: 'dashboard',
+            pathMatch: 'full',
+          },
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/dashboard/dashboard').then(
+                (component) => component.DashboardComponent,
+              ),
+          },
+          {
+            path: 'staff',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/staff/staff').then(
+                (component) => component.StaffComponent,
+              ),
+          },
+          {
+            path: 'services',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/services/services').then(
+                (component) => component.ServicesComponent,
+              ),
+          },
+          {
+            path: 'operations',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/operations/operations').then(
+                (component) => component.OperationsComponent,
+              ),
+          },
+          {
+            path: 'reports',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/reports/reports').then(
+                (component) => component.ReportsComponent,
+              ),
+          },
+        ],
       },
-      {
-        path: 'staff',
-        loadComponent: () =>
-          import('./features/administrator/section/pages/staff/staff').then(
-            (component) => component.StaffComponent,
-          ),
-      },
-      {
-        path: 'services',
-        loadComponent: () =>
-          import('./features/administrator/section/pages/services/services').then(
-            (component) => component.ServicesComponent,
-          ),
-      },
-      {
-        path: 'operations',
-        loadComponent: () =>
-          import('./features/administrator/section/pages/operations/operations').then(
-            (component) => component.OperationsComponent,
-          ),
-      },
-      {
-        path: 'reports',
-        loadComponent: () =>
-          import('./features/administrator/section/pages/reports/reports').then(
-            (component) => component.ReportsComponent,
-          ),
-      },
+      { path: 'dashboard', redirectTo: 'my-workshops' },
+      { path: 'staff', redirectTo: 'my-workshops' },
+      { path: 'services', redirectTo: 'my-workshops' },
+      { path: 'operations', redirectTo: 'my-workshops' },
+      { path: 'reports', redirectTo: 'my-workshops' },
     ],
   },
   { path: 'my-workshops', redirectTo: 'admin/my-workshops' },
   { path: 'register-workshop', redirectTo: 'admin/register-workshop' },
   { path: 'edit-workshop/:id', redirectTo: 'admin/edit-workshop/:id' },
   { path: 'view-workshop/:id', redirectTo: 'admin/view-workshop/:id' },
-  { path: 'dashboard', redirectTo: 'admin/dashboard' },
-  { path: 'staff', redirectTo: 'admin/staff' },
-  { path: 'services', redirectTo: 'admin/services' },
-  { path: 'operations', redirectTo: 'admin/operations' },
-  { path: 'reports', redirectTo: 'admin/reports' },
+  { path: 'dashboard', redirectTo: 'admin/my-workshops' },
+  { path: 'staff', redirectTo: 'admin/my-workshops' },
+  { path: 'services', redirectTo: 'admin/my-workshops' },
+  { path: 'operations', redirectTo: 'admin/my-workshops' },
+  { path: 'reports', redirectTo: 'admin/my-workshops' },
   {
     path: '**',
     redirectTo: '',

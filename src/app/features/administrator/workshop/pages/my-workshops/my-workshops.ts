@@ -67,7 +67,7 @@ export class MyWorkshopsComponent implements OnInit {
 
   private mapWorkshop(workshop: WorkshopResponse): Workshop {
     return {
-      id: workshop.id_taller ?? workshop.id ?? 0,
+      id: workshop.id_taller ?? 0,
       name: workshop.nombre,
       description: workshop.descripcion,
       address: workshop.direccion,
