@@ -14,17 +14,12 @@ export interface CreateWorkshopRequest {
   horario_fin: string;
 }
 
-export interface CreateWorkshopTemporaryRequest extends CreateWorkshopRequest {
-  id_usuario: number;
-}
-
 export interface UpdateWorkshopRequest extends CreateWorkshopRequest {
   estado?: string;
   activo: boolean;
 }
 
 export interface WorkshopResponse {
-  id?: number;
   id_taller?: number;
   id_usuario: number;
   nombre: string;
@@ -63,19 +58,7 @@ export class WorkshopService {
     return this.apiService.put<unknown, UpdateWorkshopRequest>(`/talleres/${workshopId}`, workshop);
   }
 
-  /**
-   * Temporary adapter for the current backend contract.
-   * Remove when backend lists workshops from the authenticated token.
-   */
-  getWorkshopsByUserTemporary(userId: number): Observable<WorkshopResponse[]> {
-    return this.apiService.get<WorkshopResponse[]>(`/talleres/usuario/${userId}`);
-  }
-
-  /**
-   * Temporary adapter for the current backend contract.
-   * Remove when backend assigns id_usuario from the authenticated token.
-   */
-  createWorkshopTemporary(workshop: CreateWorkshopTemporaryRequest): Observable<unknown> {
-    return this.apiService.post<unknown, CreateWorkshopTemporaryRequest>('/talleres', workshop);
+  deleteWorkshop(workshopId: number): Observable<unknown> {
+    return this.apiService.delete<unknown>(`/talleres/${workshopId}`);
   }
 }

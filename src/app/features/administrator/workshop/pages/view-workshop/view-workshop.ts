@@ -155,7 +155,7 @@ export class ViewWorkshopComponent implements OnInit, OnDestroy {
 
   private mapWorkshop(workshop: WorkshopResponse): Workshop {
     return {
-      id: workshop.id_taller ?? workshop.id ?? this.workshopId,
+      id: workshop.id_taller ?? this.workshopId,
       name: workshop.nombre,
       description: workshop.descripcion,
       address: workshop.direccion,

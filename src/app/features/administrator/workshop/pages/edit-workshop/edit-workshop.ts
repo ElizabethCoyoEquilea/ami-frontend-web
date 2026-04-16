@@ -101,7 +101,7 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
   private async fetchWorkshop(): Promise<WorkshopResponse> {
     const response = await firstValueFrom(this.workshopService.getMyWorkshops().pipe(timeout(10000)));
     const workshop = this.normalizeWorkshopResponse(response).find(
-      (item) => (item.id_taller ?? item.id) === this.workshopId,
+      (item) => item.id_taller === this.workshopId,
     );
 
     if (!workshop) {
@@ -188,7 +188,7 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
 
   private mapWorkshop(workshop: WorkshopResponse): Workshop {
     return {
-      id: workshop.id_taller ?? workshop.id ?? this.workshopId,
+      id: workshop.id_taller ?? this.workshopId,
       name: workshop.nombre,
       description: workshop.descripcion,
       address: workshop.direccion,
