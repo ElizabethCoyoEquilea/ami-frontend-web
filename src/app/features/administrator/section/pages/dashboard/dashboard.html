@@ -2,5 +2,82 @@
 
 <main class="section-layout">
   <app-sidebar></app-sidebar>
-  <section class="section-content"></section>
+  <section class="section-content">
+    <div class="dashboard-shell">
+      <section class="welcome-panel">
+        <div>
+          <p class="eyebrow">Panel del taller</p>
+          <h1>Bienvenida, {{ userName }}</h1>
+          <p>Hoy tienes buena traccion operativa: solicitudes nuevas, asignaciones avanzando y servicios cerrados con buenas calificaciones.</p>
+        </div>
+
+        <div class="welcome-metric">
+          <span>Meta mensual</span>
+          <strong>78%</strong>
+          <p>Servicios completados</p>
+        </div>
+      </section>
+
+      <section class="kpi-grid" aria-label="Indicadores principales">
+        @for (kpi of kpis; track kpi.label) {
+          <article class="kpi-card" [class]="kpi.tone">
+            <span>{{ kpi.label }}</span>
+            <strong>{{ kpi.value }}</strong>
+            <p>{{ kpi.detail }}</p>
+          </article>
+        }
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Operaciones</p>
+              <h2>Estado actual</h2>
+            </div>
+            <span class="live-pill">Actualizado</span>
+          </div>
+
+          <div class="operations-grid">
+            @for (operation of operationSummaries; track operation.label) {
+              <article class="operation-card">
+                <span>{{ operation.label }}</span>
+                <strong>{{ operation.value }}</strong>
+                <p>{{ operation.detail }}</p>
+              </article>
+            }
+          </div>
+
+          <div class="activity-list">
+            <h3>Actividad reciente</h3>
+            @for (activity of recentActivity; track activity) {
+              <p>{{ activity }}</p>
+            }
+          </div>
+        </section>
+
+        <section class="panel chart-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Servicios</p>
+              <h2>Cantidad por mes</h2>
+            </div>
+            <span class="chart-total">481 servicios</span>
+          </div>
+
+          <div class="bar-chart" aria-label="Grafico de servicios por mes">
+            @for (service of monthlyServices; track service.month) {
+              <div class="bar-column">
+                <span class="bar-value">{{ service.total }}</span>
+                <div class="bar-track">
+                  <div class="bar-fill" [style.height]="getBarHeight(service.total)"></div>
+                </div>
+                <span class="bar-label">{{ service.month }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
 </main>
