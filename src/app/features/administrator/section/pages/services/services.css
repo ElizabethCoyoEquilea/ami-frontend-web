@@ -1,10 +1,8 @@
 :host {
-  --admin-navbar-height: 4.5rem;
   display: block;
 }
 
 app-navbar {
-  display: block;
   left: 0;
   position: fixed;
   right: 0;
@@ -15,7 +13,7 @@ app-navbar {
 .section-layout {
   background: var(--color-fondo);
   display: flex;
-  margin-top: var(--admin-navbar-height);
+  margin-top: 4.5rem;
   min-height: calc(100vh - 4.5rem);
 }
 
@@ -49,11 +47,6 @@ app-navbar {
   margin: 0;
 }
 
-.services-header p:last-child {
-  color: var(--color-texto-secundario);
-  margin: 0.5rem 0 0;
-}
-
 .chrome-tabs {
   align-items: end;
   display: flex;
@@ -73,7 +66,6 @@ app-navbar {
   font-weight: 800;
   min-height: 2.75rem;
   padding: 0.75rem 1.25rem;
-  position: relative;
   white-space: nowrap;
 }
 
@@ -116,18 +108,18 @@ app-navbar {
   color: var(--color-texto);
   outline: none;
   padding: 0.75rem 0.85rem;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
   width: 100%;
-}
-
-.service-form textarea {
-  resize: vertical;
 }
 
 .service-form input:focus,
 .service-form textarea:focus {
   border-color: var(--color-titulo);
-  box-shadow: 0 0 0 0.2rem rgba(11, 31, 77, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
 .service-form button {
@@ -143,6 +135,17 @@ app-navbar {
 
 .service-form button:hover {
   background: var(--color-boton-hover);
+}
+
+.service-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.service-form .secondary-button {
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  color: var(--color-titulo);
 }
 
 .field-error {
@@ -162,6 +165,37 @@ app-navbar {
   padding: 0.75rem 0.85rem;
 }
 
+.error-message,
+.empty-state {
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.75rem 0.85rem;
+}
+
+.error-message {
+  background: var(--color-error-fondo);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  margin: 0 0 1rem;
+}
+
+.empty-state {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  color: var(--color-texto-secundario);
+}
+
+.empty-state h2 {
+  color: var(--color-titulo);
+  font-size: 1.1rem;
+  margin: 0 0 0.4rem;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
 .services-list {
   display: grid;
   gap: 0.65rem;
@@ -172,7 +206,7 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 1.4fr 0.8fr 7rem 16rem;
+  grid-template-columns: 1fr 1.4fr 0.8fr 7rem 8rem;
 }
 
 .services-table-header {
@@ -229,12 +263,6 @@ app-navbar {
 
 .row-actions button:hover:not(:disabled) {
   border-color: var(--color-titulo);
-}
-
-.row-actions button:disabled {
-  color: var(--color-texto-secundario);
-  cursor: not-allowed;
-  opacity: 0.65;
 }
 
 @media (max-width: 768px) {

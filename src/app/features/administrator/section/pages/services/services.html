@@ -32,16 +32,38 @@
         >
           Catalogo de servicios
         </button>
+
+        @if (editingServiceId()) {
+          <button
+            class="chrome-tab"
+            type="button"
+            role="tab"
+            [class.active]="activeTab() === 'edit'"
+            [attr.aria-selected]="activeTab() === 'edit'"
+            (click)="setActiveTab('edit')"
+          >
+            Editar servicio
+          </button>
+        }
       </div>
 
       <div class="tab-panel">
-        @if (activeTab() === 'register') {
-          <form class="service-form" [formGroup]="serviceForm" (ngSubmit)="registerService()">
+        @if (errorMessage()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+
+        @if (isAuthorizing()) {
+          <div class="empty-state">
+            <h2>Validando acceso...</h2>
+            <p>Estamos comprobando que el taller pertenezca a tu cuenta.</p>
+          </div>
+        } @else if (activeTab() === 'register') {
+          <form class="service-form" [formGroup]="registerForm" (ngSubmit)="registerService()">
             <div>
               <label for="nombre">Nombre</label>
               <input id="nombre" type="text" formControlName="nombre" placeholder="Cambio de aceite" />
 
-              @if (fieldIsInvalid('nombre')) {
+              @if (registerFieldIsInvalid('nombre')) {
                 <p class="field-error">Ingresa el nombre del servicio.</p>
               }
             </div>
@@ -54,17 +76,13 @@
                 rows="4"
                 placeholder="Describe que incluye el servicio"
               ></textarea>
-
-              @if (fieldIsInvalid('descripcion')) {
-                <p class="field-error">Ingresa una descripcion.</p>
-              }
             </div>
 
             <div>
               <label for="categoria">Categoria</label>
               <input id="categoria" type="text" formControlName="categoria" placeholder="Mantenimiento" />
 
-              @if (fieldIsInvalid('categoria')) {
+              @if (registerFieldIsInvalid('categoria')) {
                 <p class="field-error">Ingresa la categoria.</p>
               }
             </div>
@@ -73,7 +91,7 @@
               <label for="precio_estandar">Precio estandar</label>
               <input id="precio_estandar" type="number" min="0.01" step="0.01" formControlName="precio_estandar" />
 
-              @if (fieldIsInvalid('precio_estandar')) {
+              @if (registerFieldIsInvalid('precio_estandar')) {
                 <p class="field-error">Ingresa un precio mayor a 0.</p>
               }
             </div>
@@ -82,45 +100,143 @@
               <label for="unidad_medida">Unidad de medida</label>
               <input id="unidad_medida" type="text" formControlName="unidad_medida" placeholder="Servicio" />
 
-              @if (fieldIsInvalid('unidad_medida')) {
+              @if (registerFieldIsInvalid('unidad_medida')) {
                 <p class="field-error">Ingresa la unidad de medida.</p>
               }
             </div>
 
-            <button type="submit">Registrar</button>
+            <div class="form-actions">
+              <button type="submit" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  Guardando...
+                } @else {
+                  Registrar
+                }
+              </button>
+            </div>
 
             @if (registerMessage()) {
               <p class="success-message">{{ registerMessage() }}</p>
             }
           </form>
-        } @else {
-          <div class="services-list">
-            <div class="services-table-header">
-              <span>Nombre</span>
-              <span>Descripcion</span>
-              <span>Precio</span>
-              <span>Estado</span>
-              <span>Acciones</span>
+        } @else if (activeTab() === 'edit') {
+          <form class="service-form" [formGroup]="editForm" (ngSubmit)="updateService()">
+            <p class="success-message">Editando servicio seleccionado.</p>
+
+            <div>
+              <label for="edit-nombre">Nombre</label>
+              <input id="edit-nombre" type="text" formControlName="nombre" placeholder="Cambio de aceite" />
+
+              @if (editFieldIsInvalid('nombre')) {
+                <p class="field-error">Ingresa el nombre del servicio.</p>
+              }
             </div>
 
-            @for (service of services(); track service.id) {
-              <div class="service-row">
-                <span class="service-name">{{ service.nombre }}</span>
-                <span>{{ service.descripcion }}</span>
-                <span>{{ service.precio_estandar }} / {{ service.unidad_medida }}</span>
-                <span class="status-pill" [class.inactive]="service.estado === 'Inactivo'">
-                  {{ service.estado }}
-                </span>
-                <span class="row-actions">
-                  <button type="button">Ver</button>
-                  <button type="button">Editar</button>
-                  <button type="button" (click)="deactivateService(service.id)" [disabled]="service.estado === 'Inactivo'">
-                    Desactivar
-                  </button>
-                </span>
+            <div>
+              <label for="edit-descripcion">Descripcion</label>
+              <textarea
+                id="edit-descripcion"
+                formControlName="descripcion"
+                rows="4"
+                placeholder="Describe que incluye el servicio"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="edit-categoria">Categoria</label>
+              <input id="edit-categoria" type="text" formControlName="categoria" placeholder="Mantenimiento" />
+
+              @if (editFieldIsInvalid('categoria')) {
+                <p class="field-error">Ingresa la categoria.</p>
+              }
+            </div>
+
+            <div>
+              <label for="edit-precio-estandar">Precio estandar</label>
+              <input id="edit-precio-estandar" type="number" min="0.01" step="0.01" formControlName="precio_estandar" />
+
+              @if (editFieldIsInvalid('precio_estandar')) {
+                <p class="field-error">Ingresa un precio mayor a 0.</p>
+              }
+            </div>
+
+            <div>
+              <label for="edit-unidad-medida">Unidad de medida</label>
+              <input id="edit-unidad-medida" type="text" formControlName="unidad_medida" placeholder="Servicio" />
+
+              @if (editFieldIsInvalid('unidad_medida')) {
+                <p class="field-error">Ingresa la unidad de medida.</p>
+              }
+            </div>
+
+            <div class="flex items-center justify-between gap-4 rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-3">
+              <div>
+                <label for="edit-isActive">Activo</label>
+                <p class="m-0 text-sm text-[var(--color-texto-secundario)]">
+                  {{ $any(editForm.controls).isActive.value ? 'El servicio esta activo.' : 'El servicio esta inactivo.' }}
+                </p>
               </div>
+
+              <label class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center" for="edit-isActive">
+                <input class="peer sr-only" id="edit-isActive" type="checkbox" formControlName="isActive" />
+                <span class="absolute inset-0 rounded-full bg-[var(--color-deshabilitado)] transition peer-checked:bg-[var(--color-boton)]"></span>
+                <span class="absolute left-1 h-5 w-5 rounded-full bg-[var(--color-blanco)] transition peer-checked:translate-x-5"></span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" [disabled]="isSaving()">
+                {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+              <button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSaving()">
+                Cancelar
+              </button>
+            </div>
+
+            @if (editMessage()) {
+              <p class="success-message">{{ editMessage() }}</p>
             }
-          </div>
+          </form>
+        } @else {
+          @if (catalogMessage()) {
+            <p class="success-message">{{ catalogMessage() }}</p>
+          }
+
+          @if (isLoading()) {
+            <div class="empty-state">
+              <h2>Cargando servicios...</h2>
+              <p>Estamos obteniendo el catalogo del taller.</p>
+            </div>
+          } @else if (services().length === 0) {
+            <div class="empty-state">
+              <h2>Aun no hay servicios registrados</h2>
+              <p>Registra el primer servicio para comenzar a armar el catalogo.</p>
+            </div>
+          } @else {
+            <div class="services-list">
+              <div class="services-table-header">
+                <span>Nombre</span>
+                <span>Descripcion</span>
+                <span>Precio</span>
+                <span>Estado</span>
+                <span>Acciones</span>
+              </div>
+
+              @for (service of services(); track service.id) {
+                <div class="service-row">
+                  <span class="service-name">{{ service.nombre }}</span>
+                  <span>{{ service.descripcion || 'Sin descripcion' }}</span>
+                  <span>{{ service.precio_estandar }} / {{ service.unidad_medida }}</span>
+                  <span class="status-pill" [class.inactive]="service.estado.toLowerCase() !== 'activo'">
+                    {{ service.estado }}
+                  </span>
+                  <span class="row-actions">
+                    <button type="button" (click)="editService(service)">Editar</button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
         }
       </div>
     </div>
