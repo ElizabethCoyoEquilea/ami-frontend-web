@@ -1,0 +1,23 @@
+<div class="quote-backdrop" role="presentation">
+  <form class="quote-form" [formGroup]="quoteForm" (ngSubmit)="submitQuote()">
+    <div class="quote-heading">
+      <h3>Enviar cotizacion</h3>
+    </div>
+
+    <p class="request-summary">{{ requestDescription }}</p>
+
+    <div>
+      <label for="quote-amount">Monto</label>
+      <input id="quote-amount" type="number" min="0.01" step="0.01" formControlName="amount" />
+
+      @if (amountIsInvalid()) {
+        <p class="field-error">Ingresa una cifra mayor a 0.</p>
+      }
+    </div>
+
+    <div class="quote-actions">
+      <button type="submit">Enviar cotizacion</button>
+      <button type="button" (click)="cancel()">Cancelar</button>
+    </div>
+  </form>
+</div>

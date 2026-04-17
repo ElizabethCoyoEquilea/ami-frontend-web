@@ -1,0 +1,29 @@
+<div class="staff-backdrop" role="presentation">
+  <form class="staff-form" [formGroup]="staffForm" (ngSubmit)="submitStaff()">
+    <div class="staff-heading">
+      <h3>Asignar personal</h3>
+    </div>
+
+    <p class="assignment-summary">Servicio programado para {{ assignmentDate }}.</p>
+
+    <div>
+      <label for="staff-name">Personal disponible</label>
+      <select id="staff-name" formControlName="staffName">
+        <option value="">Selecciona personal</option>
+
+        @for (staff of availableStaff; track staff.name) {
+          <option [value]="staff.name">{{ staff.name }} - {{ staff.specialty }}</option>
+        }
+      </select>
+
+      @if (staffIsInvalid()) {
+        <p class="field-error">Selecciona una persona disponible.</p>
+      }
+    </div>
+
+    <div class="staff-actions">
+      <button type="submit">Asignar personal</button>
+      <button type="button" (click)="cancel()">Cancelar</button>
+    </div>
+  </form>
+</div>

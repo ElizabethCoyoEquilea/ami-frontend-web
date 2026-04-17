@@ -123,7 +123,7 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1.2fr 6rem 1.2fr 7rem 7rem 1fr 6rem;
+  grid-template-columns: 1.2fr 6rem 1.2fr 7rem 1fr 7rem;
 }
 
 .assignments-header,
@@ -131,7 +131,9 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 8rem 12rem 1.3fr 18rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
+  text-align: center;
 }
 
 .completed-services-header,
@@ -183,6 +185,12 @@ app-navbar {
   color: #9a3412;
 }
 
+.assigned-staff {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
 .priority-pill {
   background: #eef6ff;
   color: #1d4ed8;
@@ -202,6 +210,22 @@ app-navbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+}
+
+.request-actions {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.assignment-actions {
+  align-items: stretch;
+  flex-direction: column;
+  width: min(18rem, 100%);
+}
+
+.request-actions button,
+.assignment-actions button {
+  width: 100%;
 }
 
 .row-actions button {

@@ -1,0 +1,93 @@
+.staff-backdrop {
+  align-items: center;
+  background: rgba(11, 31, 77, 0.28);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 50;
+}
+
+.staff-form {
+  background: var(--color-formulario);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  box-shadow: 0 1.25rem 2.5rem rgba(11, 31, 77, 0.22);
+  color: var(--color-texto);
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+  padding: 1.25rem;
+  width: 100%;
+}
+
+.staff-heading h3 {
+  color: var(--color-titulo);
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.assignment-summary {
+  color: var(--color-texto-secundario);
+  margin: 0;
+}
+
+label {
+  color: var(--color-texto-secundario);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+select {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto);
+  outline: none;
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+}
+
+select:focus {
+  border-color: var(--color-titulo);
+}
+
+.field-error {
+  color: var(--color-error);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.staff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.staff-actions button {
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 0.85rem;
+}
+
+.staff-actions button[type='submit'] {
+  background: var(--color-boton);
+  border: 0;
+  color: var(--color-blanco);
+}
+
+.staff-actions button[type='button'] {
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  color: var(--color-titulo);
+}
+
+.staff-actions button:hover {
+  filter: brightness(0.95);
+}
