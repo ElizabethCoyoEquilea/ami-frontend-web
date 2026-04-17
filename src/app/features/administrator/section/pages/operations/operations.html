@@ -43,6 +43,32 @@
         >
           Servicios
         </button>
+
+        @if (selectedCompletedService() && activeTab() === 'serviceDetail') {
+          <button
+            class="chrome-tab"
+            type="button"
+            role="tab"
+            [class.active]="activeTab() === 'serviceDetail'"
+            [attr.aria-selected]="activeTab() === 'serviceDetail'"
+            (click)="setActiveTab('serviceDetail')"
+          >
+            Detalle servicio
+          </button>
+        }
+
+        @if (selectedCompletedService() && activeTab() === 'payment') {
+          <button
+            class="chrome-tab"
+            type="button"
+            role="tab"
+            [class.active]="activeTab() === 'payment'"
+            [attr.aria-selected]="activeTab() === 'payment'"
+            (click)="setActiveTab('payment')"
+          >
+            Pago
+          </button>
+        }
       </div>
 
       <div class="tab-panel">
@@ -124,25 +150,84 @@
               (cancelStaffAssign)="cancelStaffAssignment()"
             ></app-assign-staff-form>
           }
+        } @else if (activeTab() === 'serviceDetail') {
+          @if (selectedCompletedService(); as service) {
+            <div class="panel-heading detail-heading">
+              <div>
+                <h2>Lista de servicios</h2>
+                <p>Servicios realizados en la atencion #{{ service.id }}.</p>
+              </div>
+              <button class="link-button" type="button" (click)="closeServiceInfo()">Volver a servicios</button>
+            </div>
+
+            <div class="service-detail-list">
+              <div class="service-detail-header">
+                <span>Nombre</span>
+                <span>Descripcion</span>
+                <span>Precio</span>
+                <span>Cantidad</span>
+                <span>Subtotal</span>
+              </div>
+
+              @for (item of service.servicios; track item.nombre) {
+                <div class="service-detail-row">
+                  <span class="main-text">{{ item.nombre }}</span>
+                  <span>{{ item.descripcion }}</span>
+                  <span>{{ item.precio }} Bs</span>
+                  <span>{{ item.cantidad }}</span>
+                  <span>{{ item.subtotal }} Bs</span>
+                </div>
+              }
+            </div>
+          }
+        } @else if (activeTab() === 'payment') {
+          @if (selectedCompletedService(); as service) {
+            <div class="panel-heading detail-heading">
+              <div>
+                <h2>Pago</h2>
+                <p>Pago registrado para la atencion #{{ service.id }}.</p>
+              </div>
+              <button class="link-button" type="button" (click)="closeServiceInfo()">Volver a servicios</button>
+            </div>
+
+            <div class="payment-list">
+              <div class="payment-header">
+                <span>Fecha</span>
+                <span>Monto</span>
+                <span>Metodo</span>
+              </div>
+
+              <div class="payment-row">
+                <span>{{ service.pago.fecha }}</span>
+                <span class="main-text">{{ service.pago.monto }} Bs</span>
+                <span>{{ service.pago.metodo }}</span>
+              </div>
+            </div>
+          }
         } @else {
           <div class="panel-heading">
             <h2>Lista de servicios realizados</h2>
             <p>Historial de atenciones finalizadas.</p>
           </div>
 
-          <div class="completed-services-list">
-            <div class="completed-services-header">
-              <span>Monto total</span>
-              <span>Calificacion</span>
-              <span>Accion</span>
+            <div class="completed-services-list">
+              <div class="completed-services-header">
+                <span>Fecha inicio</span>
+                <span>Fecha fin</span>
+                <span>Monto total</span>
+                <span>Calificacion</span>
+                <span>Acciones</span>
             </div>
 
             @for (service of completedServices; track service.id) {
               <div class="completed-service-row">
+                <span>{{ service.fechaInicio }}</span>
+                <span>{{ service.fechaFin }}</span>
                 <span class="main-text">{{ service.montoTotal }} Bs</span>
                 <span>{{ service.calificacion }}/5</span>
-                <span class="row-actions">
-                  <button type="button">Ver detalle servicio</button>
+                <span class="row-actions completed-service-actions">
+                  <button type="button" (click)="viewServiceDetail(service)">Ver detalle</button>
+                  <button type="button" (click)="viewPayment(service)">Ver pago</button>
                 </span>
               </div>
             }
