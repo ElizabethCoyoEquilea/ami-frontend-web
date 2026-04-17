@@ -52,7 +52,13 @@ app-navbar {
   display: flex;
   gap: 0.25rem;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-left: 0.5rem;
+  scrollbar-width: none;
+}
+
+.chrome-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .chrome-tab {
@@ -91,7 +97,32 @@ app-navbar {
   max-width: 42rem;
 }
 
-.service-form label {
+.edit-service-form {
+  grid-template-columns: 1fr;
+}
+
+.full-span,
+.form-heading {
+  grid-column: 1 / -1;
+}
+
+.form-heading {
+  margin-bottom: 0.25rem;
+}
+
+.form-heading h2 {
+  color: var(--color-titulo);
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.form-heading p {
+  color: var(--color-texto-secundario);
+  margin: 0.35rem 0 0;
+}
+
+.service-form label:not(.inline-flex) {
   color: var(--color-texto-secundario);
   display: block;
   font-size: 0.8rem;
@@ -100,7 +131,7 @@ app-navbar {
   text-transform: uppercase;
 }
 
-.service-form input,
+.service-form input:not([type='checkbox']),
 .service-form textarea {
   background: var(--color-input);
   border: 1px solid var(--color-borde);
@@ -111,7 +142,7 @@ app-navbar {
   width: 100%;
 }
 
-.service-form input:focus,
+.service-form input:not([type='checkbox']):focus,
 .service-form textarea:focus {
   border-color: var(--color-titulo);
 }
@@ -120,6 +151,22 @@ app-navbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.edit-form-actions {
+  display: grid;
+  gap: 1rem;
+}
+
+.active-row {
+  align-items: center;
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.75rem 0.85rem;
 }
 
 .service-form button {
@@ -131,6 +178,29 @@ app-navbar {
   font-weight: 800;
   padding: 0.8rem 1rem;
   width: fit-content;
+}
+
+.edit-form-actions button[type='submit'] {
+  width: 100%;
+}
+
+.edit-form-actions p {
+  color: var(--color-texto-secundario);
+  margin: 0;
+  text-align: center;
+}
+
+.edit-form-actions .link-button {
+  background: transparent;
+  color: var(--color-titulo);
+  font-weight: 800;
+  padding: 0;
+  width: auto;
+}
+
+.edit-form-actions .link-button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--color-boton-hover);
 }
 
 .service-form button:hover {
@@ -281,6 +351,10 @@ app-navbar {
 
   .service-row {
     align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .edit-service-form {
     grid-template-columns: 1fr;
   }
 }
