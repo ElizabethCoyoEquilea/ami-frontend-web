@@ -4,7 +4,7 @@ import { NavbarComponent } from '../../../../../shared/components/navbar/navbar'
 import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
 import { RequestQuoteFormComponent } from './request-quote-form/request-quote-form';
 
-type OperationsTab = 'requests' | 'assignments' | 'services';
+type OperationsTab = 'requests' | 'assignments' | 'services' | 'serviceDetail' | 'payment';
 
 interface ServiceRequest {
   id: number;
@@ -25,8 +25,26 @@ interface Assignment {
 
 interface CompletedService {
   id: number;
+  fechaInicio: string;
+  fechaFin: string;
   montoTotal: number;
   calificacion: number;
+  servicios: CompletedServiceDetail[];
+  pago: ServicePayment;
+}
+
+interface CompletedServiceDetail {
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  cantidad: number;
+  subtotal: number;
+}
+
+interface ServicePayment {
+  fecha: string;
+  monto: number;
+  metodo: string;
 }
 
 @Component({
@@ -39,6 +57,7 @@ export class OperationsComponent {
   activeTab = signal<OperationsTab>('requests');
   selectedQuoteRequest = signal<ServiceRequest | null>(null);
   selectedStaffAssignment = signal<Assignment | null>(null);
+  selectedCompletedService = signal<CompletedService | null>(null);
 
   requests = signal<ServiceRequest[]>([
     {
@@ -81,13 +100,84 @@ export class OperationsComponent {
   ];
 
   completedServices: CompletedService[] = [
-    { id: 1, montoTotal: 280, calificacion: 4.8 },
-    { id: 2, montoTotal: 150, calificacion: 4.5 },
-    { id: 3, montoTotal: 520, calificacion: 5 },
+    {
+      id: 1,
+      fechaInicio: '2026-04-16',
+      fechaFin: '2026-04-16',
+      montoTotal: 280,
+      calificacion: 4.8,
+      servicios: [
+        {
+          nombre: 'Revision electrica',
+          descripcion: 'Scanner y diagnostico del sistema de arranque.',
+          precio: 180,
+          cantidad: 1,
+          subtotal: 180,
+        },
+        {
+          nombre: 'Cambio de fusible',
+          descripcion: 'Repuesto e instalacion.',
+          precio: 50,
+          cantidad: 2,
+          subtotal: 100,
+        },
+      ],
+      pago: {
+        fecha: '2026-04-16',
+        monto: 280,
+        metodo: 'Tarjeta',
+      },
+    },
+    {
+      id: 2,
+      fechaInicio: '2026-04-15',
+      fechaFin: '2026-04-15',
+      montoTotal: 150,
+      calificacion: 4.5,
+      servicios: [
+        {
+          nombre: 'Revision de frenos',
+          descripcion: 'Inspeccion de pastillas y disco delantero.',
+          precio: 150,
+          cantidad: 1,
+          subtotal: 150,
+        },
+      ],
+      pago: {
+        fecha: '2026-04-15',
+        monto: 150,
+        metodo: 'Efectivo',
+      },
+    },
+    {
+      id: 3,
+      fechaInicio: '2026-04-14',
+      fechaFin: '2026-04-14',
+      montoTotal: 520,
+      calificacion: 5,
+      servicios: [
+        {
+          nombre: 'Mantenimiento preventivo',
+          descripcion: 'Cambio de aceite, filtros y revision general.',
+          precio: 260,
+          cantidad: 2,
+          subtotal: 520,
+        },
+      ],
+      pago: {
+        fecha: '2026-04-14',
+        monto: 520,
+        metodo: 'Transferencia',
+      },
+    },
   ];
 
   setActiveTab(tab: OperationsTab): void {
     this.activeTab.set(tab);
+
+    if (tab !== 'serviceDetail' && tab !== 'payment') {
+      this.selectedCompletedService.set(null);
+    }
   }
 
   visibleRequests(): ServiceRequest[] {
@@ -147,15 +237,15 @@ export class OperationsComponent {
   }
 
   assignStaff(staffName: string): void {
-    const assignment = this.selectedStaffAssignment();
+    const selectedAssignment = this.selectedStaffAssignment();
 
-    if (!assignment) {
+    if (!selectedAssignment) {
       return;
     }
 
     this.assignments.update((assignments) =>
       assignments.map((assignment) =>
-        assignment.id === assignment.id
+        assignment.id === selectedAssignment.id
           ? { ...assignment, estado: 'Personal asignado', personalAsignado: staffName }
           : assignment,
       ),
@@ -170,5 +260,20 @@ export class OperationsComponent {
         assignment.id === assignmentId ? { ...assignment, estado: 'Servicio cancelado' } : assignment,
       ),
     );
+  }
+
+  viewServiceDetail(service: CompletedService): void {
+    this.selectedCompletedService.set(service);
+    this.activeTab.set('serviceDetail');
+  }
+
+  viewPayment(service: CompletedService): void {
+    this.selectedCompletedService.set(service);
+    this.activeTab.set('payment');
+  }
+
+  closeServiceInfo(): void {
+    this.selectedCompletedService.set(null);
+    this.activeTab.set('services');
   }
 }

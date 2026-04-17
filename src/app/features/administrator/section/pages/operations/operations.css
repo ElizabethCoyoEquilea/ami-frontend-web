@@ -111,9 +111,32 @@ app-navbar {
   margin: 0;
 }
 
+.detail-heading {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.link-button {
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-titulo);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.55rem 0.75rem;
+}
+
+.link-button:hover {
+  border-color: var(--color-titulo);
+}
+
 .requests-list,
 .assignments-list,
-.completed-services-list {
+.completed-services-list,
+.service-detail-list,
+.payment-list {
   display: grid;
   gap: 0.65rem;
 }
@@ -141,12 +164,30 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 1fr 12rem;
+  grid-template-columns: 1fr 1fr 1fr 1fr 12rem;
+}
+
+.service-detail-header,
+.service-detail-row {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1.4fr 0.8fr 0.7fr 0.8fr;
+}
+
+.payment-header,
+.payment-row {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .requests-header,
 .assignments-header,
-.completed-services-header {
+.completed-services-header,
+.service-detail-header,
+.payment-header {
   color: var(--color-texto-secundario);
   font-size: 0.8rem;
   font-weight: 800;
@@ -156,7 +197,9 @@ app-navbar {
 
 .request-row,
 .assignment-row,
-.completed-service-row {
+.completed-service-row,
+.service-detail-row,
+.payment-row {
   background: var(--color-input);
   border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
@@ -223,8 +266,14 @@ app-navbar {
   width: min(18rem, 100%);
 }
 
+.completed-service-actions {
+  align-items: stretch;
+  flex-direction: column;
+}
+
 .request-actions button,
-.assignment-actions button {
+.assignment-actions button,
+.completed-service-actions button {
   width: 100%;
 }
 
@@ -260,14 +309,23 @@ app-navbar {
 
   .requests-header,
   .assignments-header,
-  .completed-services-header {
+  .completed-services-header,
+  .service-detail-header,
+  .payment-header {
     display: none;
   }
 
   .request-row,
   .assignment-row,
-  .completed-service-row {
+  .completed-service-row,
+  .service-detail-row,
+  .payment-row {
     align-items: start;
     grid-template-columns: 1fr;
+  }
+
+  .detail-heading {
+    align-items: start;
+    flex-direction: column;
   }
 }
