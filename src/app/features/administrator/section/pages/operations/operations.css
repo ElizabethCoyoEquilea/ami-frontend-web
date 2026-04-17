@@ -60,7 +60,13 @@ app-navbar {
   display: flex;
   gap: 0.25rem;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-left: 0.5rem;
+  scrollbar-width: none;
+}
+
+.chrome-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .chrome-tab {
