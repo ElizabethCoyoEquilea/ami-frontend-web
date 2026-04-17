@@ -52,34 +52,44 @@
               }
             </div>
 
-            <button type="submit">Enviar Invitacion</button>
+            <button type="submit" [disabled]="isSendingInvitation()">
+              {{ isSendingInvitation() ? 'Enviando...' : 'Enviar Invitacion' }}
+            </button>
 
             @if (invitationMessage()) {
               <p class="success-message">{{ invitationMessage() }}</p>
             }
           </form>
         } @else {
-          <div class="providers-list">
-            <div class="providers-header">
-              <span>Nombre</span>
-              <span>Especialidad</span>
-              <span>Estado</span>
-            </div>
-
-            @for (provider of serviceProviders; track provider.name) {
-              <div class="provider-row">
-                <span class="provider-name">{{ provider.name }}</span>
-                <span>{{ provider.specialty }}</span>
-                <span
-                  class="status-pill"
-                  [class.available]="provider.status === 'Disponible'"
-                  [class.busy]="provider.status === 'Ocupado'"
-                >
-                  {{ provider.status }}
-                </span>
+          @if (isLoadingProviders()) {
+            <p class="success-message">Cargando proveedores...</p>
+          } @else if (providersErrorMessage()) {
+            <p class="field-error">{{ providersErrorMessage() }}</p>
+          } @else if (serviceProviders().length === 0) {
+            <p class="success-message">Aun no hay proveedores registrados.</p>
+          } @else {
+            <div class="providers-list">
+              <div class="providers-header">
+                <span>Nombre</span>
+                <span>Especialidad</span>
+                <span>Estado</span>
               </div>
-            }
-          </div>
+
+              @for (provider of serviceProviders(); track provider.id) {
+                <div class="provider-row">
+                  <span class="provider-name">{{ provider.name }}</span>
+                  <span>{{ provider.specialty }}</span>
+                  <span
+                    class="status-pill"
+                    [class.available]="provider.status === 'Disponible'"
+                    [class.busy]="provider.status === 'Ocupado'"
+                  >
+                    {{ provider.status }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
         }
       </div>
     </div>
