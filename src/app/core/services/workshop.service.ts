@@ -35,6 +35,45 @@ export interface WorkshopResponse {
   activo?: boolean;
 }
 
+export interface SendWorkshopInvitationRequest {
+  email: string;
+  id_taller: number;
+}
+
+export interface SendWorkshopInvitationResponse {
+  result: boolean;
+  message: string;
+  invitation_link: string;
+}
+
+export interface WorkshopProviderPerson {
+  id_persona: number;
+  nombre_completo: string;
+  telefono: string;
+  documento: string;
+}
+
+export interface WorkshopProviderUser {
+  id_usuario: number;
+  email: string;
+  persona: WorkshopProviderPerson | null;
+}
+
+export interface WorkshopProvider {
+  id_proveedor: number;
+  id_usuario: number;
+  id_taller: number;
+  estado: string | null;
+  especialidad: string | null;
+  usuario: WorkshopProviderUser;
+}
+
+export interface WorkshopProvidersResponse {
+  id_taller: number;
+  total_proveedores: number;
+  proveedores: WorkshopProvider[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -60,5 +99,18 @@ export class WorkshopService {
 
   deleteWorkshop(workshopId: number): Observable<unknown> {
     return this.apiService.delete<unknown>(`/talleres/${workshopId}`);
+  }
+
+  sendWorkshopInvitation(
+    payload: SendWorkshopInvitationRequest,
+  ): Observable<SendWorkshopInvitationResponse> {
+    return this.apiService.post<SendWorkshopInvitationResponse, SendWorkshopInvitationRequest>(
+      '/auth/talleres/invitaciones',
+      payload,
+    );
+  }
+
+  getWorkshopProviders(workshopId: number): Observable<WorkshopProvidersResponse> {
+    return this.apiService.get<WorkshopProvidersResponse>(`/talleres/${workshopId}/proveedores`);
   }
 }
