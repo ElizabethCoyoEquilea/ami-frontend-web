@@ -120,8 +120,11 @@
             }
           </form>
         } @else if (activeTab() === 'edit') {
-          <form class="service-form" [formGroup]="editForm" (ngSubmit)="updateService()">
-            <p class="success-message">Editando servicio seleccionado.</p>
+          <form class="service-form edit-service-form" [formGroup]="editForm" (ngSubmit)="updateService()">
+            <div class="form-heading">
+              <h2>Editar servicio</h2>
+              <p>Actualiza los datos del catalogo y su estado de disponibilidad.</p>
+            </div>
 
             <div>
               <label for="edit-nombre">Nombre</label>
@@ -132,7 +135,7 @@
               }
             </div>
 
-            <div>
+            <div class="full-span">
               <label for="edit-descripcion">Descripcion</label>
               <textarea
                 id="edit-descripcion"
@@ -169,28 +172,34 @@
               }
             </div>
 
-            <div class="flex items-center justify-between gap-4 rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-3">
+            <div class="active-row full-span">
               <div>
-                <label for="edit-isActive">Activo</label>
-                <p class="m-0 text-sm text-[var(--color-texto-secundario)]">
+                <label class="block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="isActive">
+                  Activo
+                </label>
+                <p class="mt-1 text-sm text-[var(--color-texto-secundario)]">
                   {{ $any(editForm.controls).isActive.value ? 'El servicio esta activo.' : 'El servicio esta inactivo.' }}
                 </p>
               </div>
 
-              <label class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center" for="edit-isActive">
-                <input class="peer sr-only" id="edit-isActive" type="checkbox" formControlName="isActive" />
+              <label class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center" for="isActive">
+                <input class="peer sr-only" id="isActive" type="checkbox" formControlName="isActive" />
                 <span class="absolute inset-0 rounded-full bg-[var(--color-deshabilitado)] transition peer-checked:bg-[var(--color-boton)]"></span>
                 <span class="absolute left-1 h-5 w-5 rounded-full bg-[var(--color-blanco)] transition peer-checked:translate-x-5"></span>
               </label>
             </div>
 
-            <div class="form-actions">
+            <div class="edit-form-actions full-span">
               <button type="submit" [disabled]="isSaving()">
                 {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
               </button>
-              <button class="secondary-button" type="button" (click)="cancelEdit()" [disabled]="isSaving()">
-                Cancelar
-              </button>
+
+              <p>
+                Quieres volver?
+                <button class="link-button" type="button" (click)="cancelEdit()" [disabled]="isSaving()">
+                  Catalogo de servicios
+                </button>
+              </p>
             </div>
 
             @if (editMessage()) {
