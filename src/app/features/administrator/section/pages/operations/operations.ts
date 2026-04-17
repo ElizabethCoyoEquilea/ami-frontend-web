@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
+import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
+import { RequestQuoteFormComponent } from './request-quote-form/request-quote-form';
 
 type OperationsTab = 'requests' | 'assignments' | 'services';
 
@@ -9,7 +11,7 @@ interface ServiceRequest {
   descripcion: string;
   prioridad: 'Alta' | 'Media' | 'Baja';
   observaciones: string;
-  estado: 'Pendiente' | 'Aceptada';
+  estado: 'Pendiente' | 'Aceptada' | 'Rechazada';
   fecha: string;
   direccion: string;
 }
@@ -17,11 +19,8 @@ interface ServiceRequest {
 interface Assignment {
   id: number;
   fecha: string;
-  estado: 'Pendiente de cotizacion' | 'Cotizada' | 'Personal asignado';
-  cotizacion: {
-    monto: number;
-    descripcion: string;
-  };
+  estado: 'Pendiente de asignar personal' | 'Personal en camino' | 'Personal asignado' | 'Servicio cancelado';
+  personalAsignado?: string;
 }
 
 interface CompletedService {
@@ -32,19 +31,21 @@ interface CompletedService {
 
 @Component({
   selector: 'app-operations',
-  imports: [NavbarComponent, SidebarComponent],
+  imports: [AssignStaffFormComponent, NavbarComponent, RequestQuoteFormComponent, SidebarComponent],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
 export class OperationsComponent {
   activeTab = signal<OperationsTab>('requests');
+  selectedQuoteRequest = signal<ServiceRequest | null>(null);
+  selectedStaffAssignment = signal<Assignment | null>(null);
 
   requests = signal<ServiceRequest[]>([
     {
       id: 1,
-      descripcion: 'El vehiculo no enciende despues de varios intentos.',
+      descripcion: 'El vehiculo no enciende despues de varios intentos, suena raro cuando lo intento y ahora sale humo.',
       prioridad: 'Alta',
-      observaciones: 'El cliente indica que la bateria fue cambiada hace dos meses.',
+      observaciones: 'El cliente indica que la bateria fue cambiada hace dos meses.El cliente indica que la bateria fue cambiada hace dos meses.El cliente indica que la bateria fue cambiada hace dos meses.',
       estado: 'Pendiente',
       fecha: '2026-04-16',
       direccion: 'Av. Beni, 3er anillo',
@@ -64,22 +65,20 @@ export class OperationsComponent {
     {
       id: 1,
       fecha: '2026-04-15',
-      estado: 'Pendiente de cotizacion',
-      cotizacion: {
-        monto: 0,
-        descripcion: 'Cotizacion pendiente de envio.',
-      },
+      estado: 'Pendiente de asignar personal',
     },
     {
       id: 2,
       fecha: '2026-04-14',
-      estado: 'Cotizada',
-      cotizacion: {
-        monto: 350,
-        descripcion: 'Revision electrica, scanner y cambio de sensor.',
-      },
+      estado: 'Personal en camino',
     },
   ]);
+
+  readonly availableStaff: AvailableStaff[] = [
+    { name: 'Carlos Mendez', specialty: 'Mecanica general' },
+    { name: 'Miguel Suarez', specialty: 'Frenos y suspension' },
+    { name: 'Carlos Rojas', specialty: 'Mecanica general' },
+  ];
 
   completedServices: CompletedService[] = [
     { id: 1, montoTotal: 280, calificacion: 4.8 },
@@ -91,36 +90,84 @@ export class OperationsComponent {
     this.activeTab.set(tab);
   }
 
-  acceptRequest(requestId: number): void {
+  visibleRequests(): ServiceRequest[] {
+    return this.requests().filter((request) => request.estado === 'Pendiente');
+  }
+
+  openQuoteForm(request: ServiceRequest): void {
+    this.selectedQuoteRequest.set(request);
+  }
+
+  cancelQuote(): void {
+    this.selectedQuoteRequest.set(null);
+  }
+
+  submitRequestQuote(amount: number): void {
+    const request = this.selectedQuoteRequest();
+
+    if (!request) {
+      return;
+    }
+
+    this.assignments.update((assignments) => [
+      ...assignments,
+      {
+        id: Math.max(0, ...assignments.map((assignment) => assignment.id)) + 1,
+        fecha: request.fecha,
+        estado: 'Pendiente de asignar personal',
+        cotizacion: {
+          monto: amount,
+          descripcion: `Cotizacion enviada para: ${request.descripcion}`,
+        },
+      },
+    ]);
+
+    this.acceptRequest(request.id);
+    this.cancelQuote();
+  }
+
+  private acceptRequest(requestId: number): void {
     this.requests.update((requests) =>
       requests.map((request) => (request.id === requestId ? { ...request, estado: 'Aceptada' } : request)),
     );
   }
 
-  sendQuote(assignmentId: number): void {
-    this.assignments.update((assignments) =>
-      assignments.map((assignment) =>
-        assignment.id === assignmentId
-          ? {
-              ...assignment,
-              estado: 'Cotizada',
-              cotizacion: {
-                monto: assignment.cotizacion.monto || 250,
-                descripcion:
-                  assignment.cotizacion.monto > 0
-                    ? assignment.cotizacion.descripcion
-                    : 'Diagnostico, mano de obra y repuestos estimados.',
-              },
-            }
-          : assignment,
-      ),
+  rejectRequest(requestId: number): void {
+    this.requests.update((requests) =>
+      requests.map((request) => (request.id === requestId ? { ...request, estado: 'Rechazada' } : request)),
     );
   }
 
-  assignStaff(assignmentId: number): void {
+  openStaffForm(assignment: Assignment): void {
+    this.selectedStaffAssignment.set(assignment);
+  }
+
+  cancelStaffAssignment(): void {
+    this.selectedStaffAssignment.set(null);
+  }
+
+  assignStaff(staffName: string): void {
+    const assignment = this.selectedStaffAssignment();
+
+    if (!assignment) {
+      return;
+    }
+
     this.assignments.update((assignments) =>
       assignments.map((assignment) =>
-        assignment.id === assignmentId ? { ...assignment, estado: 'Personal asignado' } : assignment,
+        assignment.id === assignment.id
+          ? { ...assignment, estado: 'Personal asignado', personalAsignado: staffName }
+          : assignment,
+      ),
+    );
+
+    this.cancelStaffAssignment();
+  }
+
+  cancelService(assignmentId: number): void {
+    this.assignments.update((assignments) =>
+      assignments.map((assignment) =>
+        assignment.id === assignmentId ? { ...assignment, estado: 'Servicio cancelado' } : assignment,
       ),
     );
   }

@@ -49,7 +49,6 @@
         @if (activeTab() === 'requests') {
           <div class="panel-heading">
             <h2>Lista de solicitudes</h2>
-            <p>Cercanas al radio de atencion.</p>
           </div>
 
           <div class="requests-list">
@@ -57,59 +56,74 @@
               <span>Descripcion</span>
               <span>Prioridad</span>
               <span>Observaciones</span>
-              <span>Estado</span>
               <span>Fecha</span>
               <span>Direccion</span>
-              <span>Accion</span>
+              <span>Acciones</span>
             </div>
 
-            @for (request of requests(); track request.id) {
+            @for (request of visibleRequests(); track request.id) {
               <div class="request-row">
                 <span class="main-text">{{ request.descripcion }}</span>
                 <span class="priority-pill" [class.high]="request.prioridad === 'Alta'">{{ request.prioridad }}</span>
                 <span>{{ request.observaciones }}</span>
-                <span class="status-pill" [class.pending]="request.estado === 'Pendiente'">{{ request.estado }}</span>
                 <span>{{ request.fecha }}</span>
                 <span>{{ request.direccion }}</span>
-                <span class="row-actions">
-                  <button type="button" (click)="acceptRequest(request.id)" [disabled]="request.estado === 'Aceptada'">
-                    Aceptar
+                <span class="row-actions request-actions">
+                  <button type="button" (click)="openQuoteForm(request)">
+                    Enviar cotizacion
+                  </button>
+                  <button type="button" (click)="rejectRequest(request.id)">
+                    Rechazar
                   </button>
                 </span>
               </div>
             }
           </div>
+
+          @if (selectedQuoteRequest(); as request) {
+            <app-request-quote-form
+              [requestDescription]="request.descripcion"
+              (quoteSubmit)="submitRequestQuote($event)"
+              (cancelQuote)="cancelQuote()"
+            ></app-request-quote-form>
+          }
         } @else if (activeTab() === 'assignments') {
           <div class="panel-heading">
             <h2>Lista de asignaciones</h2>
-            <p>Solicitudes aceptadas por el taller.</p>
           </div>
 
           <div class="assignments-list">
             <div class="assignments-header">
               <span>Fecha</span>
               <span>Estado</span>
-              <span>Cotizacion</span>
               <span>Acciones</span>
             </div>
 
             @for (assignment of assignments(); track assignment.id) {
               <div class="assignment-row">
                 <span>{{ assignment.fecha }}</span>
-                <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de cotizacion'">
+                <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de asignar personal'">
                   {{ assignment.estado }}
+                  @if (assignment.personalAsignado) {
+                    <span class="assigned-staff">{{ assignment.personalAsignado }}</span>
+                  }
                 </span>
-                <span>
-                  <strong>{{ assignment.cotizacion.monto }} Bs</strong>
-                  <span class="quote-description">{{ assignment.cotizacion.descripcion }}</span>
-                </span>
-                <span class="row-actions">
-                  <button type="button" (click)="sendQuote(assignment.id)">Enviar cotizacion</button>
-                  <button type="button" (click)="assignStaff(assignment.id)">Asignar personal</button>
+                <span class="row-actions assignment-actions">
+                  <button type="button" (click)="openStaffForm(assignment)">Asignar personal</button>
+                  <button type="button" (click)="cancelService(assignment.id)">Cancelar Servicio</button>
                 </span>
               </div>
             }
           </div>
+
+          @if (selectedStaffAssignment(); as assignment) {
+            <app-assign-staff-form
+              [availableStaff]="availableStaff"
+              [assignmentDate]="assignment.fecha"
+              (staffAssign)="assignStaff($event)"
+              (cancelStaffAssign)="cancelStaffAssignment()"
+            ></app-assign-staff-form>
+          }
         } @else {
           <div class="panel-heading">
             <h2>Lista de servicios realizados</h2>
