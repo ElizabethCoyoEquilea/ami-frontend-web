@@ -18,6 +18,8 @@ export class AssignStaffFormComponent {
 
   @Input({ required: true }) availableStaff: AvailableStaff[] = [];
   @Input({ required: true }) assignmentDate = '';
+  @Input() isLoadingStaff = false;
+  @Input() staffErrorMessage = '';
   @Output() staffAssign = new EventEmitter<string>();
   @Output() cancelStaffAssign = new EventEmitter<void>();
 
@@ -31,6 +33,10 @@ export class AssignStaffFormComponent {
   }
 
   submitStaff(): void {
+    if (this.isLoadingStaff || this.staffErrorMessage || this.availableStaff.length === 0) {
+      return;
+    }
+
     if (this.staffForm.invalid) {
       this.staffForm.markAllAsTouched();
       return;

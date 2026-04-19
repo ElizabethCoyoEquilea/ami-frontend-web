@@ -80,12 +80,15 @@
       <div class="md:col-span-2">
         <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]">
           Ubicacion del negocio
+          <span class="text-[var(--color-error)]">*</span>
         </label>
 
         <button
           class="rounded-md border border-[var(--color-boton)] px-4 py-2 text-sm font-bold text-[var(--color-boton)] transition hover:bg-[var(--color-boton)] hover:text-[var(--color-blanco)]"
           type="button"
           (click)="showLocationPicker()"
+          [attr.aria-invalid]="locationIsInvalid()"
+          aria-required="true"
         >
           Seleccionar ubicacion
         </button>
@@ -96,6 +99,10 @@
           </p>
         } @else {
           <p class="mt-2 text-sm text-[var(--color-texto-secundario)]">Marca el punto exacto del negocio en el mapa.</p>
+        }
+
+        @if (locationIsInvalid()) {
+          <p class="mt-2 text-sm text-[var(--color-error)]">La ubicacion del negocio es obligatoria.</p>
         }
 
         @if (isMapVisible) {
