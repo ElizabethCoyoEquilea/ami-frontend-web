@@ -34,6 +34,7 @@ export class RegisterWorkshopComponent implements OnDestroy {
   errorMessage = '';
   successMessage = '';
   selectedLocation: { latitude: number; longitude: number } | null = null;
+  locationTouched = false;
 
   workshopForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
@@ -54,13 +55,19 @@ export class RegisterWorkshopComponent implements OnDestroy {
   }
 
   showLocationPicker(): void {
+    this.locationTouched = true;
     this.isMapVisible = true;
     setTimeout(() => this.initializeMap());
+  }
+
+  locationIsInvalid(): boolean {
+    return this.locationTouched && !this.selectedLocation;
   }
 
   async submitWorkshop(): Promise<void> {
     this.errorMessage = '';
     this.successMessage = '';
+    this.locationTouched = true;
 
     if (this.workshopForm.invalid) {
       this.workshopForm.markAllAsTouched();
@@ -159,6 +166,7 @@ export class RegisterWorkshopComponent implements OnDestroy {
       latitude: roundedLatitude,
       longitude: roundedLongitude,
     };
+    this.locationTouched = true;
 
     if (this.marker) {
       this.marker.setLatLng(markerPosition);

@@ -8,13 +8,29 @@
 
     <div>
       <label for="staff-name">Personal disponible</label>
-      <select id="staff-name" formControlName="staffName">
-        <option value="">Selecciona personal</option>
+      <select
+        id="staff-name"
+        formControlName="staffName"
+        [disabled]="isLoadingStaff || !!staffErrorMessage || availableStaff.length === 0"
+      >
+        <option value="">
+          @if (isLoadingStaff) {
+            Cargando personal...
+          } @else {
+            Selecciona personal
+          }
+        </option>
 
         @for (staff of availableStaff; track staff.name) {
           <option [value]="staff.name">{{ staff.name }} - {{ staff.specialty }}</option>
         }
       </select>
+
+      @if (staffErrorMessage) {
+        <p class="field-error">{{ staffErrorMessage }}</p>
+      } @else if (!isLoadingStaff && availableStaff.length === 0) {
+        <p class="field-error">No hay proveedores disponibles para este taller.</p>
+      }
 
       @if (staffIsInvalid()) {
         <p class="field-error">Selecciona una persona disponible.</p>
@@ -22,7 +38,9 @@
     </div>
 
     <div class="staff-actions">
-      <button type="submit">Asignar personal</button>
+      <button type="submit" [disabled]="isLoadingStaff || !!staffErrorMessage || availableStaff.length === 0">
+        Asignar personal
+      </button>
       <button type="button" (click)="cancel()">Cancelar</button>
     </div>
   </form>

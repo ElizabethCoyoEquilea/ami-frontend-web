@@ -104,6 +104,13 @@ app-navbar {
   margin-bottom: 1.25rem;
 }
 
+.requests-heading {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
 .panel-heading h2 {
   color: var(--color-titulo);
   font-size: 1.25rem;
@@ -130,6 +137,12 @@ app-navbar {
 
 .link-button:hover {
   border-color: var(--color-titulo);
+}
+
+.link-button:disabled {
+  color: var(--color-texto-secundario);
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .requests-list,
@@ -205,6 +218,44 @@ app-navbar {
   border-radius: 0.5rem;
   color: var(--color-texto);
   padding: 0.85rem;
+}
+
+.empty-state {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto-secundario);
+  padding: 1.25rem;
+}
+
+.empty-state h2 {
+  color: var(--color-titulo);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.empty-state p {
+  margin: 0.45rem 0 0;
+}
+
+.error-state {
+  border-color: var(--color-error-borde);
+  color: var(--color-error);
+}
+
+.error-state h2 {
+  color: var(--color-error);
+}
+
+.feedback-message {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  color: #16703b;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
 }
 
 .main-text {
@@ -325,6 +376,11 @@ app-navbar {
   }
 
   .detail-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .requests-heading {
     align-items: start;
     flex-direction: column;
   }

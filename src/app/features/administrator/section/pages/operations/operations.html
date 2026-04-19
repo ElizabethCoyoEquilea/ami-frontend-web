@@ -73,82 +73,151 @@
 
       <div class="tab-panel">
         @if (activeTab() === 'requests') {
-          <div class="panel-heading">
-            <h2>Lista de solicitudes</h2>
-          </div>
-
-          <div class="requests-list">
-            <div class="requests-header">
-              <span>Descripcion</span>
-              <span>Prioridad</span>
-              <span>Observaciones</span>
-              <span>Fecha</span>
-              <span>Direccion</span>
-              <span>Acciones</span>
+          <div class="panel-heading requests-heading">
+            <div>
+              <h2>Lista de solicitudes</h2>
+              <p>Solicitudes pendientes de cotizacion para este taller.</p>
             </div>
-
-            @for (request of visibleRequests(); track request.id) {
-              <div class="request-row">
-                <span class="main-text">{{ request.descripcion }}</span>
-                <span class="priority-pill" [class.high]="request.prioridad === 'Alta'">{{ request.prioridad }}</span>
-                <span>{{ request.observaciones }}</span>
-                <span>{{ request.fecha }}</span>
-                <span>{{ request.direccion }}</span>
-                <span class="row-actions request-actions">
-                  <button type="button" (click)="openQuoteForm(request)">
-                    Enviar cotizacion
-                  </button>
-                  <button type="button" (click)="rejectRequest(request.id)">
-                    Rechazar
-                  </button>
-                </span>
-              </div>
-            }
+            <button
+              class="link-button"
+              type="button"
+              (click)="loadPendingRequests()"
+              [disabled]="isLoadingRequests()"
+            >
+              {{ isLoadingRequests() ? 'Recargando...' : 'Recargar' }}
+            </button>
           </div>
 
-          @if (selectedQuoteRequest(); as request) {
-            <app-request-quote-form
-              [requestDescription]="request.descripcion"
-              (quoteSubmit)="submitRequestQuote($event)"
-              (cancelQuote)="cancelQuote()"
-            ></app-request-quote-form>
+          @if (isLoadingRequests()) {
+            <div class="empty-state">
+              <h2>Cargando solicitudes...</h2>
+              <p>Estamos obteniendo las cotizaciones pendientes del taller.</p>
+            </div>
+          } @else if (requestsErrorMessage()) {
+            <div class="empty-state error-state">
+              <h2>No se pudieron cargar las solicitudes</h2>
+              <p>{{ requestsErrorMessage() }}</p>
+            </div>
+          } @else if (visibleRequests().length === 0) {
+            <div class="empty-state">
+              <h2>No hay solicitudes pendientes</h2>
+              <p>Cuando existan solicitudes pendientes, apareceran en esta lista.</p>
+            </div>
+          } @else {
+            @if (quoteMessage()) {
+              <p class="feedback-message">{{ quoteMessage() }}</p>
+            }
+
+            @if (quoteErrorMessage() && !selectedQuoteRequest()) {
+              <p class="empty-state error-state">{{ quoteErrorMessage() }}</p>
+            }
+
+            <div class="requests-list">
+              <div class="requests-header">
+                <span>Descripcion</span>
+                <span>Prioridad</span>
+                <span>Observaciones</span>
+                <span>Fecha</span>
+                <span>Direccion</span>
+                <span>Acciones</span>
+              </div>
+
+              @for (request of visibleRequests(); track request.id) {
+                <div class="request-row">
+                  <span class="main-text">{{ request.descripcion }}</span>
+                  <span class="priority-pill" [class.high]="request.prioridad === 'Alta'">{{ request.prioridad }}</span>
+                  <span>{{ request.observaciones }}</span>
+                  <span>{{ request.fecha }}</span>
+                  <span>{{ request.direccion }}</span>
+                  <span class="row-actions request-actions">
+                    <button
+                      type="button"
+                      (click)="openQuoteForm(request)"
+                      [disabled]="requestActionsAreDisabled(request)"
+                    >
+                      Enviar cotizacion
+                    </button>
+                    <button
+                      type="button"
+                      (click)="rejectRequest(request)"
+                      [disabled]="requestActionsAreDisabled(request)"
+                    >
+                      {{ requestIsBeingRejected(request) ? 'Rechazando...' : 'Rechazar' }}
+                    </button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (!isLoadingRequests() && !requestsErrorMessage()) {
+            @if (selectedQuoteRequest(); as request) {
+              <app-request-quote-form
+                [requestDescription]="request.descripcion"
+                [isSubmitting]="isSendingQuote()"
+                [errorMessage]="quoteErrorMessage()"
+                (quoteSubmit)="submitRequestQuote($event)"
+                (cancelQuote)="cancelQuote()"
+              ></app-request-quote-form>
+            }
           }
         } @else if (activeTab() === 'assignments') {
           <div class="panel-heading">
             <h2>Lista de asignaciones</h2>
           </div>
 
-          <div class="assignments-list">
-            <div class="assignments-header">
-              <span>Fecha</span>
-              <span>Estado</span>
-              <span>Acciones</span>
+          @if (isLoadingAssignments()) {
+            <div class="empty-state">
+              <h2>Cargando asignaciones...</h2>
+              <p>Estamos obteniendo las asignaciones del taller.</p>
             </div>
-
-            @for (assignment of assignments(); track assignment.id) {
-              <div class="assignment-row">
-                <span>{{ assignment.fecha }}</span>
-                <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de asignar personal'">
-                  {{ assignment.estado }}
-                  @if (assignment.personalAsignado) {
-                    <span class="assigned-staff">{{ assignment.personalAsignado }}</span>
-                  }
-                </span>
-                <span class="row-actions assignment-actions">
-                  <button type="button" (click)="openStaffForm(assignment)">Asignar personal</button>
-                  <button type="button" (click)="cancelService(assignment.id)">Cancelar Servicio</button>
-                </span>
+          } @else if (assignmentsErrorMessage()) {
+            <div class="empty-state error-state">
+              <h2>No se pudieron cargar las asignaciones</h2>
+              <p>{{ assignmentsErrorMessage() }}</p>
+            </div>
+          } @else if (assignments().length === 0) {
+            <div class="empty-state">
+              <h2>No hay asignaciones registradas</h2>
+              <p>Cuando existan asignaciones para este taller, apareceran en esta lista.</p>
+            </div>
+          } @else {
+            <div class="assignments-list">
+              <div class="assignments-header">
+                <span>Fecha</span>
+                <span>Estado</span>
+                <span>Acciones</span>
               </div>
-            }
-          </div>
 
-          @if (selectedStaffAssignment(); as assignment) {
-            <app-assign-staff-form
-              [availableStaff]="availableStaff"
-              [assignmentDate]="assignment.fecha"
-              (staffAssign)="assignStaff($event)"
-              (cancelStaffAssign)="cancelStaffAssignment()"
-            ></app-assign-staff-form>
+              @for (assignment of assignments(); track assignment.id) {
+                <div class="assignment-row">
+                  <span>{{ assignment.fecha }}</span>
+                  <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de asignar personal'">
+                    {{ assignment.estado }}
+                    @if (assignment.personalAsignado) {
+                      <span class="assigned-staff">{{ assignment.personalAsignado }}</span>
+                    }
+                  </span>
+                  <span class="row-actions assignment-actions">
+                    <button type="button" (click)="openStaffForm(assignment)">Asignar personal</button>
+                    <button type="button" (click)="cancelService(assignment.id)">Cancelar Servicio</button>
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (!isLoadingAssignments() && !assignmentsErrorMessage()) {
+            @if (selectedStaffAssignment(); as assignment) {
+              <app-assign-staff-form
+                [availableStaff]="availableStaff()"
+                [assignmentDate]="assignment.fecha"
+                [isLoadingStaff]="isLoadingProviders()"
+                [staffErrorMessage]="providersErrorMessage()"
+                (staffAssign)="assignStaff($event)"
+                (cancelStaffAssign)="cancelStaffAssignment()"
+              ></app-assign-staff-form>
+            }
           }
         } @else if (activeTab() === 'serviceDetail') {
           @if (selectedCompletedService(); as service) {

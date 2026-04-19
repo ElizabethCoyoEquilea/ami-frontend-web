@@ -15,9 +15,15 @@
       }
     </div>
 
+    @if (errorMessage) {
+      <p class="field-error form-error">{{ errorMessage }}</p>
+    }
+
     <div class="quote-actions">
-      <button type="submit">Enviar cotizacion</button>
-      <button type="button" (click)="cancel()">Cancelar</button>
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Enviando...' : 'Enviar cotizacion' }}
+      </button>
+      <button type="button" (click)="cancel()" [disabled]="isSubmitting">Cancelar</button>
     </div>
   </form>
 </div>

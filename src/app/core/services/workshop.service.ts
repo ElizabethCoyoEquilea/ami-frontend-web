@@ -8,13 +8,15 @@ export interface CreateWorkshopRequest {
   radio_cobertura: number;
   calificacion: number;
   direccion: string;
-  longitud: number | null;
-  latitud: number | null;
+  longitud: number;
+  latitud: number;
   horario_inicio: string;
   horario_fin: string;
 }
 
-export interface UpdateWorkshopRequest extends CreateWorkshopRequest {
+export interface UpdateWorkshopRequest extends Omit<CreateWorkshopRequest, 'longitud' | 'latitud'> {
+  longitud: number | null;
+  latitud: number | null;
   estado?: string;
   activo: boolean;
 }
@@ -74,6 +76,31 @@ export interface WorkshopProvidersResponse {
   proveedores: WorkshopProvider[];
 }
 
+export interface WorkshopAssignmentRequest {
+  id_solicitud: number;
+  id_vehiculo: number;
+  descripcion: string;
+  latitud: number | null;
+  direccion: string;
+  longitud: number | null;
+  fecha: string;
+  prioridad: string | null;
+  observaciones: string | null;
+  audio: string | null;
+  imagenes: string | null;
+  estado: string;
+}
+
+export interface WorkshopAssignmentResponse {
+  id_asignacion: number;
+  id_solicitud: number;
+  id_taller: number;
+  id_catalogo_servicio: number | null;
+  fecha: string;
+  estado: string;
+  solicitud: WorkshopAssignmentRequest;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -112,5 +139,9 @@ export class WorkshopService {
 
   getWorkshopProviders(workshopId: number): Observable<WorkshopProvidersResponse> {
     return this.apiService.get<WorkshopProvidersResponse>(`/talleres/${workshopId}/proveedores`);
+  }
+
+  getWorkshopAssignments(workshopId: number): Observable<WorkshopAssignmentResponse[]> {
+    return this.apiService.get<WorkshopAssignmentResponse[]>(`/talleres/${workshopId}/asignaciones`);
   }
 }

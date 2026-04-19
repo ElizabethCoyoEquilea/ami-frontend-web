@@ -12,6 +12,8 @@ export class RequestQuoteFormComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   @Input({ required: true }) requestDescription = '';
+  @Input() isSubmitting = false;
+  @Input() errorMessage = '';
   @Output() quoteSubmit = new EventEmitter<number>();
   @Output() cancelQuote = new EventEmitter<void>();
 
@@ -25,6 +27,10 @@ export class RequestQuoteFormComponent {
   }
 
   submitQuote(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (this.quoteForm.invalid) {
       this.quoteForm.markAllAsTouched();
       return;

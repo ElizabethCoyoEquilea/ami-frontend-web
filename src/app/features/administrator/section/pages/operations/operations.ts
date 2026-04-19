@@ -1,4 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { firstValueFrom, timeout } from 'rxjs';
+import { PendingQuoteResponse, QuoteService } from '../../../../../core/services/quote.service';
+import {
+  WorkshopAssignmentResponse,
+  WorkshopProvider,
+  WorkshopService,
+} from '../../../../../core/services/workshop.service';
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
@@ -8,8 +16,11 @@ type OperationsTab = 'requests' | 'assignments' | 'services' | 'serviceDetail' |
 
 interface ServiceRequest {
   id: number;
+  solicitudId: number;
+  tallerId: number;
+  vehiculoId: number;
   descripcion: string;
-  prioridad: 'Alta' | 'Media' | 'Baja';
+  prioridad: string;
   observaciones: string;
   estado: 'Pendiente' | 'Aceptada' | 'Rechazada';
   fecha: string;
@@ -18,8 +29,11 @@ interface ServiceRequest {
 
 interface Assignment {
   id: number;
+  solicitudId: number;
+  tallerId: number;
+  catalogoServicioId: number | null;
   fecha: string;
-  estado: 'Pendiente de asignar personal' | 'Personal en camino' | 'Personal asignado' | 'Servicio cancelado';
+  estado: string;
   personalAsignado?: string;
 }
 
@@ -53,51 +67,31 @@ interface ServicePayment {
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
-export class OperationsComponent {
+export class OperationsComponent implements OnInit {
+  private readonly quoteService = inject(QuoteService);
+  private readonly workshopService = inject(WorkshopService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
+
   activeTab = signal<OperationsTab>('requests');
   selectedQuoteRequest = signal<ServiceRequest | null>(null);
   selectedStaffAssignment = signal<Assignment | null>(null);
   selectedCompletedService = signal<CompletedService | null>(null);
+  isLoadingRequests = signal(false);
+  isLoadingAssignments = signal(false);
+  isLoadingProviders = signal(false);
+  isSendingQuote = signal(false);
+  rejectingQuoteId = signal<number | null>(null);
+  requestsErrorMessage = signal('');
+  assignmentsErrorMessage = signal('');
+  providersErrorMessage = signal('');
+  quoteErrorMessage = signal('');
+  quoteMessage = signal('');
+  submittedQuoteIds = signal<number[]>([]);
 
-  requests = signal<ServiceRequest[]>([
-    {
-      id: 1,
-      descripcion: 'El vehiculo no enciende despues de varios intentos, suena raro cuando lo intento y ahora sale humo.',
-      prioridad: 'Alta',
-      observaciones: 'El cliente indica que la bateria fue cambiada hace dos meses.El cliente indica que la bateria fue cambiada hace dos meses.El cliente indica que la bateria fue cambiada hace dos meses.',
-      estado: 'Pendiente',
-      fecha: '2026-04-16',
-      direccion: 'Av. Beni, 3er anillo',
-    },
-    {
-      id: 2,
-      descripcion: 'Ruido al frenar en la rueda delantera derecha.',
-      prioridad: 'Media',
-      observaciones: 'Puede trasladar el vehiculo al taller por la tarde.',
-      estado: 'Pendiente',
-      fecha: '2026-04-16',
-      direccion: 'Barrio Hamacas, calle 5',
-    },
-  ]);
-
-  assignments = signal<Assignment[]>([
-    {
-      id: 1,
-      fecha: '2026-04-15',
-      estado: 'Pendiente de asignar personal',
-    },
-    {
-      id: 2,
-      fecha: '2026-04-14',
-      estado: 'Personal en camino',
-    },
-  ]);
-
-  readonly availableStaff: AvailableStaff[] = [
-    { name: 'Carlos Mendez', specialty: 'Mecanica general' },
-    { name: 'Miguel Suarez', specialty: 'Frenos y suspension' },
-    { name: 'Carlos Rojas', specialty: 'Mecanica general' },
-  ];
+  requests = signal<ServiceRequest[]>([]);
+  assignments = signal<Assignment[]>([]);
+  availableStaff = signal<AvailableStaff[]>([]);
 
   completedServices: CompletedService[] = [
     {
@@ -172,11 +166,20 @@ export class OperationsComponent {
     },
   ];
 
+  ngOnInit(): void {
+    void this.loadPendingRequests();
+    void this.loadAssignments();
+  }
+
   setActiveTab(tab: OperationsTab): void {
     this.activeTab.set(tab);
 
     if (tab !== 'serviceDetail' && tab !== 'payment') {
       this.selectedCompletedService.set(null);
+    }
+
+    if (tab === 'assignments') {
+      void this.loadAssignments();
     }
   }
 
@@ -184,55 +187,143 @@ export class OperationsComponent {
     return this.requests().filter((request) => request.estado === 'Pendiente');
   }
 
+  async loadPendingRequests(): Promise<void> {
+    this.requestsErrorMessage.set('');
+
+    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+      this.requests.set([]);
+      this.requestsErrorMessage.set('No se encontro el taller seleccionado.');
+      return;
+    }
+
+    this.isLoadingRequests.set(true);
+
+    try {
+      const response = await firstValueFrom(
+        this.quoteService.getPendingQuotesByWorkshop(this.workshopId).pipe(timeout(10000)),
+      );
+      const quotes = this.normalizePendingQuotesResponse(response);
+      this.requests.set(quotes.map((quote) => this.mapPendingQuote(quote)));
+      this.selectedQuoteRequest.set(null);
+      this.submittedQuoteIds.set([]);
+    } catch (error) {
+      this.requests.set([]);
+      this.requestsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar las solicitudes pendientes.'));
+    } finally {
+      this.isLoadingRequests.set(false);
+    }
+  }
+
+  async loadAssignments(): Promise<void> {
+    this.assignmentsErrorMessage.set('');
+
+    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+      this.assignments.set([]);
+      this.assignmentsErrorMessage.set('No se encontro el taller seleccionado.');
+      return;
+    }
+
+    this.isLoadingAssignments.set(true);
+
+    try {
+      const response = await firstValueFrom(
+        this.workshopService.getWorkshopAssignments(this.workshopId).pipe(timeout(10000)),
+      );
+      const assignments = this.normalizeAssignmentsResponse(response);
+      this.assignments.set(assignments.map((assignment) => this.mapAssignment(assignment)));
+      this.selectedStaffAssignment.set(null);
+    } catch (error) {
+      this.assignments.set([]);
+      this.assignmentsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar las asignaciones.'));
+    } finally {
+      this.isLoadingAssignments.set(false);
+    }
+  }
+
   openQuoteForm(request: ServiceRequest): void {
+    this.quoteErrorMessage.set('');
+    this.quoteMessage.set('');
     this.selectedQuoteRequest.set(request);
   }
 
+  requestActionsAreDisabled(request: ServiceRequest): boolean {
+    const selectedRequestId = this.selectedQuoteRequest()?.id;
+    return (
+      this.submittedQuoteIds().includes(request.id) ||
+      selectedRequestId === request.id ||
+      this.rejectingQuoteId() === request.id
+    );
+  }
+
+  requestIsBeingRejected(request: ServiceRequest): boolean {
+    return this.rejectingQuoteId() === request.id;
+  }
+
   cancelQuote(): void {
+    this.quoteErrorMessage.set('');
     this.selectedQuoteRequest.set(null);
   }
 
-  submitRequestQuote(amount: number): void {
+  async submitRequestQuote(amount: number): Promise<void> {
     const request = this.selectedQuoteRequest();
 
     if (!request) {
       return;
     }
 
-    this.assignments.update((assignments) => [
-      ...assignments,
-      {
-        id: Math.max(0, ...assignments.map((assignment) => assignment.id)) + 1,
-        fecha: request.fecha,
-        estado: 'Pendiente de asignar personal',
-        cotizacion: {
-          monto: amount,
-          descripcion: `Cotizacion enviada para: ${request.descripcion}`,
-        },
-      },
-    ]);
+    this.quoteErrorMessage.set('');
+    this.quoteMessage.set('');
+    this.isSendingQuote.set(true);
 
-    this.acceptRequest(request.id);
-    this.cancelQuote();
+    try {
+      const response = await firstValueFrom(
+        this.quoteService
+          .updateQuoteAmount(request.solicitudId, request.id, request.vehiculoId, amount)
+          .pipe(timeout(10000)),
+      );
+
+      this.selectedQuoteRequest.set(null);
+      this.submittedQuoteIds.update((quoteIds) =>
+        quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
+      );
+
+      this.quoteMessage.set(
+        response.websocket_enviado
+          ? 'Cotizacion enviada correctamente.'
+          : 'Cotizacion actualizada. El cliente no estaba conectado al WebSocket.',
+      );
+    } catch (error) {
+      this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo enviar la cotizacion.'));
+    } finally {
+      this.isSendingQuote.set(false);
+    }
   }
 
-  private acceptRequest(requestId: number): void {
-    this.requests.update((requests) =>
-      requests.map((request) => (request.id === requestId ? { ...request, estado: 'Aceptada' } : request)),
-    );
-  }
+  async rejectRequest(request: ServiceRequest): Promise<void> {
+    this.quoteErrorMessage.set('');
+    this.quoteMessage.set('');
+    this.rejectingQuoteId.set(request.id);
 
-  rejectRequest(requestId: number): void {
-    this.requests.update((requests) =>
-      requests.map((request) => (request.id === requestId ? { ...request, estado: 'Rechazada' } : request)),
-    );
+    try {
+      await firstValueFrom(this.quoteService.rejectQuote(request.solicitudId, request.id).pipe(timeout(10000)));
+      this.submittedQuoteIds.update((quoteIds) =>
+        quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
+      );
+      this.quoteMessage.set('Cotizacion rechazada correctamente.');
+    } catch (error) {
+      this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo rechazar la cotizacion.'));
+    } finally {
+      this.rejectingQuoteId.set(null);
+    }
   }
 
   openStaffForm(assignment: Assignment): void {
     this.selectedStaffAssignment.set(assignment);
+    void this.loadAvailableStaff();
   }
 
   cancelStaffAssignment(): void {
+    this.providersErrorMessage.set('');
     this.selectedStaffAssignment.set(null);
   }
 
@@ -275,5 +366,144 @@ export class OperationsComponent {
   closeServiceInfo(): void {
     this.selectedCompletedService.set(null);
     this.activeTab.set('services');
+  }
+
+  private mapPendingQuote(quote: PendingQuoteResponse): ServiceRequest {
+    const request = quote.solicitud;
+
+    return {
+      id: quote.id_cotizacion,
+      solicitudId: quote.id_solicitud,
+      tallerId: quote.id_taller,
+      vehiculoId: request.id_vehiculo,
+      descripcion: request.descripcion,
+      prioridad: this.formatPriority(request.prioridad),
+      observaciones: request.observaciones?.trim() || 'Sin observaciones',
+      estado: 'Pendiente',
+      fecha: this.formatDate(request.fecha),
+      direccion: request.direccion,
+    };
+  }
+
+  private mapAssignment(assignment: WorkshopAssignmentResponse): Assignment {
+    return {
+      id: assignment.id_asignacion,
+      solicitudId: assignment.id_solicitud,
+      tallerId: assignment.id_taller,
+      catalogoServicioId: assignment.id_catalogo_servicio,
+      fecha: this.formatDate(assignment.fecha),
+      estado: assignment.estado,
+    };
+  }
+
+  private async loadAvailableStaff(): Promise<void> {
+    this.providersErrorMessage.set('');
+    this.availableStaff.set([]);
+
+    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+      this.providersErrorMessage.set('No se encontro el taller seleccionado.');
+      return;
+    }
+
+    this.isLoadingProviders.set(true);
+
+    try {
+      const response = await firstValueFrom(
+        this.workshopService.getWorkshopProviders(this.workshopId).pipe(timeout(10000)),
+      );
+      const providers = this.normalizeProvidersResponse(response);
+      this.availableStaff.set(
+        providers
+          .filter((provider) => provider.estado?.trim().toLowerCase() !== 'inactivo')
+          .map((provider) => this.mapAvailableStaff(provider)),
+      );
+    } catch (error) {
+      this.providersErrorMessage.set(this.getErrorMessage(error, 'No se pudo cargar el personal disponible.'));
+    } finally {
+      this.isLoadingProviders.set(false);
+    }
+  }
+
+  private normalizePendingQuotesResponse(
+    response: PendingQuoteResponse[] | { value?: PendingQuoteResponse[] },
+  ): PendingQuoteResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    return response.value ?? [];
+  }
+
+  private normalizeAssignmentsResponse(
+    response: WorkshopAssignmentResponse[] | { value?: WorkshopAssignmentResponse[] },
+  ): WorkshopAssignmentResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    return response.value ?? [];
+  }
+
+  private normalizeProvidersResponse(
+    response:
+      | { proveedores?: WorkshopProvider[] }
+      | WorkshopProvider[]
+      | { value?: WorkshopProvider[] },
+  ): WorkshopProvider[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if ('proveedores' in response) {
+      return response.proveedores ?? [];
+    }
+
+    if ('value' in response) {
+      return response.value ?? [];
+    }
+
+    return [];
+  }
+
+  private mapAvailableStaff(provider: WorkshopProvider): AvailableStaff {
+    return {
+      name: provider.usuario.persona?.nombre_completo?.trim() || provider.usuario.email,
+      specialty: provider.especialidad?.trim() || 'Sin especialidad',
+    };
+  }
+
+  private formatPriority(priority: string | null): string {
+    if (!priority?.trim()) {
+      return 'Sin prioridad';
+    }
+
+    return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
+  }
+
+  private formatDate(date: string): string {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleDateString('es-BO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  private getErrorMessage(error: unknown, fallbackMessage: string): string {
+    if (typeof error === 'object' && error && 'error' in error) {
+      const backendError = (error as { error?: { detail?: string; message?: string; error?: string } }).error;
+      return backendError?.detail ?? backendError?.message ?? backendError?.error ?? fallbackMessage;
+    }
+
+    if (typeof error === 'object' && error && 'name' in error && error.name === 'TimeoutError') {
+      return 'El backend tardo demasiado en responder.';
+    }
+
+    return fallbackMessage;
   }
 }
