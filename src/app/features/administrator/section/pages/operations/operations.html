@@ -213,7 +213,7 @@
                 [availableStaff]="availableStaff()"
                 [assignmentDate]="assignment.fecha"
                 [isLoadingStaff]="isLoadingProviders()"
-                [staffErrorMessage]="providersErrorMessage()"
+                [staffErrorMessage]="providersErrorMessage() || websocketErrorMessage()"
                 (staffAssign)="assignStaff($event)"
                 (cancelStaffAssign)="cancelStaffAssignment()"
               ></app-assign-staff-form>

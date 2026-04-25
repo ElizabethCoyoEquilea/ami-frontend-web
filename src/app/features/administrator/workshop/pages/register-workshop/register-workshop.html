@@ -68,12 +68,13 @@
           id="coverageRadius"
           type="number"
           formControlName="coverageRadius"
-          min="1"
+          min="3"
+          max="30"
           placeholder="5"
         />
 
         @if (fieldIsInvalid('coverageRadius')) {
-          <p class="mt-2 text-sm text-[var(--color-error)]">El radio de cobertura debe ser mayor a 0.</p>
+          <p class="mt-2 text-sm text-[var(--color-error)]">El radio de cobertura debe estar entre 3 y 30 km.</p>
         }
       </div>
 

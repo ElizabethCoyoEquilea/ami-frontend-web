@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
+import { ApiService } from '../../../../../core/services/api.service';
+import { AuthService } from '../../../../../core/services/auth.service';
 import { PendingQuoteResponse, QuoteService } from '../../../../../core/services/quote.service';
 import {
   WorkshopAssignmentResponse,
@@ -37,6 +39,11 @@ interface Assignment {
   personalAsignado?: string;
 }
 
+interface ProviderSocketMessage {
+  tipo: string;
+  data: Record<string, unknown>;
+}
+
 interface CompletedService {
   id: number;
   fechaInicio: string;
@@ -67,11 +74,15 @@ interface ServicePayment {
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
-export class OperationsComponent implements OnInit {
+export class OperationsComponent implements OnInit, OnDestroy {
+  private readonly apiService = inject(ApiService);
+  private readonly authService = inject(AuthService);
   private readonly quoteService = inject(QuoteService);
   private readonly workshopService = inject(WorkshopService);
   private readonly route = inject(ActivatedRoute);
   private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
+  private providerWebSocket: WebSocket | null = null;
+  private pendingProviderMessage: ProviderSocketMessage | null = null;
 
   activeTab = signal<OperationsTab>('requests');
   selectedQuoteRequest = signal<ServiceRequest | null>(null);
@@ -85,6 +96,7 @@ export class OperationsComponent implements OnInit {
   requestsErrorMessage = signal('');
   assignmentsErrorMessage = signal('');
   providersErrorMessage = signal('');
+  websocketErrorMessage = signal('');
   quoteErrorMessage = signal('');
   quoteMessage = signal('');
   submittedQuoteIds = signal<number[]>([]);
@@ -169,6 +181,11 @@ export class OperationsComponent implements OnInit {
   ngOnInit(): void {
     void this.loadPendingRequests();
     void this.loadAssignments();
+  }
+
+  ngOnDestroy(): void {
+    this.providerWebSocket?.close();
+    this.providerWebSocket = null;
   }
 
   setActiveTab(tab: OperationsTab): void {
@@ -319,25 +336,42 @@ export class OperationsComponent implements OnInit {
 
   openStaffForm(assignment: Assignment): void {
     this.selectedStaffAssignment.set(assignment);
+    this.websocketErrorMessage.set('');
+    this.connectProviderWebSocket();
     void this.loadAvailableStaff();
   }
 
   cancelStaffAssignment(): void {
     this.providersErrorMessage.set('');
+    this.websocketErrorMessage.set('');
     this.selectedStaffAssignment.set(null);
   }
 
-  assignStaff(staffName: string): void {
+  assignStaff(staff: AvailableStaff): void {
     const selectedAssignment = this.selectedStaffAssignment();
 
     if (!selectedAssignment) {
       return;
     }
 
+    const messageSent = this.sendProviderSocketMessage({
+      tipo: 'aceptar_asignacion',
+      data: {
+        id_asignacion: selectedAssignment.id,
+        id_personal: staff.id,
+        id_taller: selectedAssignment.tallerId,
+      },
+    });
+
+    if (!messageSent) {
+      this.websocketErrorMessage.set('No se pudo enviar la asignacion por WebSocket. Verifica la conexion.');
+      return;
+    }
+
     this.assignments.update((assignments) =>
       assignments.map((assignment) =>
         assignment.id === selectedAssignment.id
-          ? { ...assignment, estado: 'Personal asignado', personalAsignado: staffName }
+          ? { ...assignment, estado: 'Personal asignado', personalAsignado: staff.name }
           : assignment,
       ),
     );
@@ -467,9 +501,75 @@ export class OperationsComponent implements OnInit {
 
   private mapAvailableStaff(provider: WorkshopProvider): AvailableStaff {
     return {
+      id: provider.usuario.persona?.id_persona ?? provider.id_usuario,
       name: provider.usuario.persona?.nombre_completo?.trim() || provider.usuario.email,
       specialty: provider.especialidad?.trim() || 'Sin especialidad',
     };
+  }
+
+  private connectProviderWebSocket(): void {
+    if (
+      this.providerWebSocket &&
+      (this.providerWebSocket.readyState === WebSocket.OPEN ||
+        this.providerWebSocket.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
+    const token = this.authService.getToken();
+
+    if (!token) {
+      this.websocketErrorMessage.set('No hay token de sesion para conectar al WebSocket.');
+      return;
+    }
+
+    const websocketUrl = `${this.apiService.getWebSocketBaseUrl()}/ws/proveedor?token=${encodeURIComponent(token)}`;
+
+    this.providerWebSocket = new WebSocket(websocketUrl);
+
+    this.providerWebSocket.onopen = () => {
+      this.websocketErrorMessage.set('');
+
+      if (this.pendingProviderMessage) {
+        this.providerWebSocket?.send(JSON.stringify(this.pendingProviderMessage));
+        this.pendingProviderMessage = null;
+      }
+    };
+
+    this.providerWebSocket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data) as ProviderSocketMessage;
+        if (message.tipo === 'conexion_proveedor_ok') {
+          console.info('WebSocket proveedor conectado', message.data);
+        }
+      } catch {
+        console.warn('Mensaje WebSocket invalido recibido en proveedor.');
+      }
+    };
+
+    this.providerWebSocket.onerror = () => {
+      this.websocketErrorMessage.set('No se pudo establecer la conexion WebSocket con el servidor.');
+    };
+
+    this.providerWebSocket.onclose = () => {
+      this.providerWebSocket = null;
+    };
+  }
+
+  private sendProviderSocketMessage(message: ProviderSocketMessage): boolean {
+    if (!this.providerWebSocket || this.providerWebSocket.readyState !== WebSocket.OPEN) {
+      this.pendingProviderMessage = message;
+      this.connectProviderWebSocket();
+
+      if (!this.providerWebSocket) {
+        return false;
+      }
+
+      return true;
+    }
+
+    this.providerWebSocket.send(JSON.stringify(message));
+    return true;
   }
 
   private formatPriority(priority: string | null): string {

@@ -59,7 +59,7 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
     name: ['', [Validators.required]],
     description: ['', [Validators.required]],
     address: ['', [Validators.required]],
-    coverageRadius: [1, [Validators.required, Validators.min(1)]],
+    coverageRadius: [3, [Validators.required, Validators.min(3), Validators.max(30)]],
     openingTime: ['', [Validators.required]],
     closingTime: ['', [Validators.required]],
     isActive: [true],

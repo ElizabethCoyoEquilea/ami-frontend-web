@@ -10,7 +10,7 @@
       <label for="staff-name">Personal disponible</label>
       <select
         id="staff-name"
-        formControlName="staffName"
+        formControlName="staffId"
         [disabled]="isLoadingStaff || !!staffErrorMessage || availableStaff.length === 0"
       >
         <option value="">
@@ -21,8 +21,8 @@
           }
         </option>
 
-        @for (staff of availableStaff; track staff.name) {
-          <option [value]="staff.name">{{ staff.name }} - {{ staff.specialty }}</option>
+        @for (staff of availableStaff; track staff.id) {
+          <option [value]="staff.id">{{ staff.name }} - {{ staff.specialty }}</option>
         }
       </select>
 

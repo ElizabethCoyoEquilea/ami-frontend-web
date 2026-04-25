@@ -9,6 +9,16 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://127.0.0.1:8000';
 
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  getWebSocketBaseUrl(): string {
+    const apiUrl = new URL(this.baseUrl);
+    const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProtocol}//${apiUrl.host}`;
+  }
+
   get<TResponse>(endpoint: string): Observable<TResponse> {
     return this.http.get<TResponse>(this.buildUrl(endpoint));
   }
