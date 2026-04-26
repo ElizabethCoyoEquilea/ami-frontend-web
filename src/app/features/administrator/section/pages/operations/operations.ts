@@ -1,14 +1,15 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
-import { ApiService } from '../../../../../core/services/api.service';
-import { AuthService } from '../../../../../core/services/auth.service';
 import { PendingQuoteResponse, QuoteService } from '../../../../../core/services/quote.service';
 import {
   WorkshopAssignmentResponse,
   WorkshopProvider,
   WorkshopService,
 } from '../../../../../core/services/workshop.service';
+import { WorkshopWebSocketService, type WebSocketMessage } from '../../../../../core/services/workshop-websocket.service';
+
+import { NotificationService } from '../../../../../shared/services/notification.service';
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
@@ -24,7 +25,7 @@ interface ServiceRequest {
   descripcion: string;
   prioridad: string;
   observaciones: string;
-  estado: 'Pendiente' | 'Aceptada' | 'Rechazada';
+  estado: string;
   fecha: string;
   direccion: string;
 }
@@ -37,11 +38,6 @@ interface Assignment {
   fecha: string;
   estado: string;
   personalAsignado?: string;
-}
-
-interface ProviderSocketMessage {
-  tipo: string;
-  data: Record<string, unknown>;
 }
 
 interface CompletedService {
@@ -70,19 +66,17 @@ interface ServicePayment {
 
 @Component({
   selector: 'app-operations',
-  imports: [AssignStaffFormComponent, NavbarComponent, RequestQuoteFormComponent, SidebarComponent],
+  imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent, RequestQuoteFormComponent],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
 export class OperationsComponent implements OnInit, OnDestroy {
-  private readonly apiService = inject(ApiService);
-  private readonly authService = inject(AuthService);
   private readonly quoteService = inject(QuoteService);
   private readonly workshopService = inject(WorkshopService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly wsService = inject(WorkshopWebSocketService);
   private readonly route = inject(ActivatedRoute);
-  private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
-  private providerWebSocket: WebSocket | null = null;
-  private pendingProviderMessage: ProviderSocketMessage | null = null;
+  private readonly workshopId = this.getWorkshopIdFromRoute();
 
   activeTab = signal<OperationsTab>('requests');
   selectedQuoteRequest = signal<ServiceRequest | null>(null);
@@ -181,11 +175,28 @@ export class OperationsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     void this.loadPendingRequests();
     void this.loadAssignments();
+    this.setupProviderMessageListener();
+    this.setupClientMessageListener();
+  }
+
+  private getWorkshopIdFromRoute(): number {
+    let currentRoute: ActivatedRoute | null = this.route;
+
+    while (currentRoute) {
+      const workshopId = Number(currentRoute.snapshot.paramMap.get('id'));
+
+      if (Number.isInteger(workshopId) && workshopId > 0) {
+        return workshopId;
+      }
+
+      currentRoute = currentRoute.parent;
+    }
+
+    return 0;
   }
 
   ngOnDestroy(): void {
-    this.providerWebSocket?.close();
-    this.providerWebSocket = null;
+    // El servicio de websocket se mantiene conectado mientras esté en la sección
   }
 
   setActiveTab(tab: OperationsTab): void {
@@ -201,7 +212,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   visibleRequests(): ServiceRequest[] {
-    return this.requests().filter((request) => request.estado === 'Pendiente');
+    return this.requests();
   }
 
   async loadPendingRequests(): Promise<void> {
@@ -258,6 +269,10 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   openQuoteForm(request: ServiceRequest): void {
+    if (!this.requestIsPending(request)) {
+      return;
+    }
+
     this.quoteErrorMessage.set('');
     this.quoteMessage.set('');
     this.selectedQuoteRequest.set(request);
@@ -268,7 +283,8 @@ export class OperationsComponent implements OnInit, OnDestroy {
     return (
       this.submittedQuoteIds().includes(request.id) ||
       selectedRequestId === request.id ||
-      this.rejectingQuoteId() === request.id
+      this.rejectingQuoteId() === request.id ||
+      !this.requestIsPending(request)
     );
   }
 
@@ -285,6 +301,12 @@ export class OperationsComponent implements OnInit, OnDestroy {
     const request = this.selectedQuoteRequest();
 
     if (!request) {
+      return;
+    }
+
+    if (!this.requestIsPending(request)) {
+      this.quoteErrorMessage.set('La cotizacion ya fue enviada y no se puede modificar.');
+      this.selectedQuoteRequest.set(null);
       return;
     }
 
@@ -317,6 +339,10 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   async rejectRequest(request: ServiceRequest): Promise<void> {
+    if (!this.requestIsPending(request)) {
+      return;
+    }
+
     this.quoteErrorMessage.set('');
     this.quoteMessage.set('');
     this.rejectingQuoteId.set(request.id);
@@ -327,6 +353,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
         quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
       );
       this.quoteMessage.set('Cotizacion rechazada correctamente.');
+      await this.loadPendingRequests();
     } catch (error) {
       this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo rechazar la cotizacion.'));
     } finally {
@@ -337,7 +364,6 @@ export class OperationsComponent implements OnInit, OnDestroy {
   openStaffForm(assignment: Assignment): void {
     this.selectedStaffAssignment.set(assignment);
     this.websocketErrorMessage.set('');
-    this.connectProviderWebSocket();
     void this.loadAvailableStaff();
   }
 
@@ -413,10 +439,28 @@ export class OperationsComponent implements OnInit, OnDestroy {
       descripcion: request.descripcion,
       prioridad: this.formatPriority(request.prioridad),
       observaciones: request.observaciones?.trim() || 'Sin observaciones',
-      estado: 'Pendiente',
+      estado: this.formatQuoteStatus(quote.estado),
       fecha: this.formatDate(request.fecha),
       direccion: request.direccion,
     };
+  }
+
+  private requestIsPending(request: ServiceRequest): boolean {
+    return this.normalizeStatus(request.estado) === 'pendiente';
+  }
+
+  private formatQuoteStatus(status: string): string {
+    const normalizedStatus = this.normalizeStatus(status);
+
+    if (!normalizedStatus) {
+      return 'Sin estado';
+    }
+
+    return normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1);
+  }
+
+  private normalizeStatus(status: string | null | undefined): string {
+    return status?.trim().toLowerCase() ?? '';
   }
 
   private mapAssignment(assignment: WorkshopAssignmentResponse): Assignment {
@@ -448,7 +492,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
       const providers = this.normalizeProvidersResponse(response);
       this.availableStaff.set(
         providers
-          .filter((provider) => provider.estado?.trim().toLowerCase() !== 'inactivo')
+          .filter((provider) => provider.estado?.trim().toLowerCase() === 'disponible')
           .map((provider) => this.mapAvailableStaff(provider)),
       );
     } catch (error) {
@@ -507,69 +551,64 @@ export class OperationsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private connectProviderWebSocket(): void {
-    if (
-      this.providerWebSocket &&
-      (this.providerWebSocket.readyState === WebSocket.OPEN ||
-        this.providerWebSocket.readyState === WebSocket.CONNECTING)
-    ) {
-      return;
-    }
-
-    const token = this.authService.getToken();
-
-    if (!token) {
-      this.websocketErrorMessage.set('No hay token de sesion para conectar al WebSocket.');
-      return;
-    }
-
-    const websocketUrl = `${this.apiService.getWebSocketBaseUrl()}/ws/proveedor?token=${encodeURIComponent(token)}`;
-
-    this.providerWebSocket = new WebSocket(websocketUrl);
-
-    this.providerWebSocket.onopen = () => {
-      this.websocketErrorMessage.set('');
-
-      if (this.pendingProviderMessage) {
-        this.providerWebSocket?.send(JSON.stringify(this.pendingProviderMessage));
-        this.pendingProviderMessage = null;
+  private setupProviderMessageListener(): void {
+    this.wsService.onProviderMessage((message: WebSocketMessage) => {
+      if (message.tipo === 'conexion_proveedor_ok') {
+        console.info('WebSocket proveedor conectado', message.data);
+        this.websocketErrorMessage.set('');
+        return;
       }
-    };
 
-    this.providerWebSocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data) as ProviderSocketMessage;
-        if (message.tipo === 'conexion_proveedor_ok') {
-          console.info('WebSocket proveedor conectado', message.data);
-        }
-      } catch {
-        console.warn('Mensaje WebSocket invalido recibido en proveedor.');
+      if (message.tipo === 'asignacion_rechazada') {
+        this.notificationService.error('Asignacion Rechazada');
       }
-    };
-
-    this.providerWebSocket.onerror = () => {
-      this.websocketErrorMessage.set('No se pudo establecer la conexion WebSocket con el servidor.');
-    };
-
-    this.providerWebSocket.onclose = () => {
-      this.providerWebSocket = null;
-    };
+    });
   }
 
-  private sendProviderSocketMessage(message: ProviderSocketMessage): boolean {
-    if (!this.providerWebSocket || this.providerWebSocket.readyState !== WebSocket.OPEN) {
-      this.pendingProviderMessage = message;
-      this.connectProviderWebSocket();
-
-      if (!this.providerWebSocket) {
-        return false;
+  private setupClientMessageListener(): void {
+    this.wsService.onClientMessage((message: WebSocketMessage) => {
+      if (message.tipo === 'nueva_cotizacion') {
+        this.handleNewQuoteMessage(message);
       }
 
-      return true;
+      if (message.tipo === 'respuesta_cotizacion_cliente') {
+        this.handleClientQuoteResponseMessage(message);
+      }
+    });
+  }
+
+  private handleNewQuoteMessage(message: WebSocketMessage): void {
+    const quoteWorkshopId = Number(message.data['id_taller']);
+
+    if (quoteWorkshopId !== this.workshopId) {
+      return;
     }
 
-    this.providerWebSocket.send(JSON.stringify(message));
-    return true;
+    this.notificationService.info('Tienes una nueva solicitud pendiente');
+    void this.loadPendingRequests();
+  }
+
+  private handleClientQuoteResponseMessage(message: WebSocketMessage): void {
+    const quoteWorkshopId = Number(message.data['id_taller']);
+
+    if (quoteWorkshopId !== this.workshopId) {
+      return;
+    }
+
+    const clientName = this.getMessageText(message.data['nombre_usuario'], 'El cliente');
+    const action = this.getMessageText(message.data['accion']).toLowerCase();
+    const actionText = action === 'acepto' || action === 'aceptó' ? 'acepto' : 'cancelo';
+
+    this.notificationService.info(`${clientName} ${actionText} la cotizacion`);
+    void this.loadPendingRequests();
+  }
+
+  private getMessageText(value: unknown, fallback = ''): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private sendProviderSocketMessage(message: WebSocketMessage): boolean {
+    return this.wsService.sendProviderMessage(message);
   }
 
   private formatPriority(priority: string | null): string {

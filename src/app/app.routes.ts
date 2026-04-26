@@ -56,6 +56,10 @@ export const routes: Routes = [
       },
       {
         path: 'workshop/:id',
+        loadComponent: () =>
+          import('./features/administrator/section/layout/workshop-section-layout').then(
+            (component) => component.WorkshopSectionLayoutComponent,
+          ),
         children: [
           {
             path: '',

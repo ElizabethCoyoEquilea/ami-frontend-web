@@ -78,14 +78,6 @@
               <h2>Lista de solicitudes</h2>
               <p>Solicitudes pendientes de cotizacion para este taller.</p>
             </div>
-            <button
-              class="link-button"
-              type="button"
-              (click)="loadPendingRequests()"
-              [disabled]="isLoadingRequests()"
-            >
-              {{ isLoadingRequests() ? 'Recargando...' : 'Recargar' }}
-            </button>
           </div>
 
           @if (isLoadingRequests()) {

@@ -18,7 +18,7 @@ interface ProviderPerformance {
 
 @Component({
   selector: 'app-reports',
-  imports: [NavbarComponent, ReactiveFormsModule, SidebarComponent],
+  imports: [NavbarComponent, SidebarComponent, ReactiveFormsModule],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
 })
