@@ -7,14 +7,8 @@
       <section class="welcome-panel">
         <div>
           <p class="eyebrow">Panel del taller</p>
-          <h1>Bienvenida, {{ userName }}</h1>
-          <p>Hoy tienes buena traccion operativa: solicitudes nuevas, asignaciones avanzando y servicios cerrados con buenas calificaciones.</p>
-        </div>
-
-        <div class="welcome-metric">
-          <span>Meta mensual</span>
-          <strong>78%</strong>
-          <p>Servicios completados</p>
+          <h1>{{ greeting() }}, {{ userName() }}</h1>
+          <p>Todo tu taller, en un solo lugar</p>
         </div>
       </section>
 
@@ -43,15 +37,8 @@
               <article class="operation-card">
                 <span>{{ operation.label }}</span>
                 <strong>{{ operation.value }}</strong>
-                <p>{{ operation.detail }}</p>
+                <p>{{ operation.status }}</p>
               </article>
-            }
-          </div>
-
-          <div class="activity-list">
-            <h3>Actividad reciente</h3>
-            @for (activity of recentActivity; track activity) {
-              <p>{{ activity }}</p>
             }
           </div>
         </section>

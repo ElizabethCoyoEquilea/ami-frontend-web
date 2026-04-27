@@ -145,6 +145,19 @@
         }
       </div>
 
+      <div class="md:col-span-2">
+        <label class="mb-2 block text-sm font-bold uppercase text-[var(--color-texto-secundario)]" for="qr">
+          Imagen QR
+        </label>
+        <input
+          class="w-full rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] px-3 py-2 text-[var(--color-texto)] outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-boton)] file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-[var(--color-blanco)]"
+          id="qr"
+          type="file"
+          accept="image/*"
+          (change)="onQrFileSelected($event)"
+        />
+      </div>
+
       @if (errorMessage) {
         <p class="rounded-md border border-[var(--color-error-borde)] bg-[var(--color-error-fondo)] px-3 py-2 text-sm text-[var(--color-error)] md:col-span-2">
           {{ errorMessage }}

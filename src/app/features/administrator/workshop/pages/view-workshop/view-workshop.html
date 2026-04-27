@@ -45,6 +45,15 @@
           </p>
         </div>
 
+        @if (qrUrl) {
+          <div class="md:col-span-2">
+            <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">QR</p>
+            <div class="inline-flex rounded-md border border-[var(--color-borde)] bg-[var(--color-input)] p-3">
+              <img class="h-40 w-40 object-contain" [src]="qrUrl" alt="QR del taller" />
+            </div>
+          </div>
+        }
+
         @if (hasLocation) {
           <div class="md:col-span-2">
             <p class="mb-2 text-sm font-bold uppercase text-[var(--color-texto-secundario)]">Ubicacion</p>

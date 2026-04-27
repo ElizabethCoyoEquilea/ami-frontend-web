@@ -18,6 +18,7 @@ interface Workshop {
   closingTime: string;
   backendState?: string;
   activeState: 'Activo' | 'Inactivo';
+  qr: string | null;
 }
 
 @Component({
@@ -54,6 +55,7 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
   workshopNotFound = signal(false);
   isMapVisible = false;
   selectedLocation: { latitude: number; longitude: number } | null = null;
+  selectedQrFile: File | null = null;
 
   workshopForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
@@ -141,6 +143,15 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
     setTimeout(() => this.initializeMap());
   }
 
+  get currentQrUrl(): string {
+    return this.getAssetUrl(this.currentWorkshop?.qr ?? null);
+  }
+
+  onQrFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedQrFile = input.files?.[0] ?? null;
+  }
+
   async submitWorkshop(): Promise<void> {
     this.errorMessage.set('');
 
@@ -174,6 +185,7 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
       horario_fin: this.toBackendTime(formValue.closingTime),
       estado: this.currentWorkshop?.backendState,
       activo: formValue.isActive,
+      qr: this.selectedQrFile,
     };
 
     try {
@@ -200,7 +212,20 @@ export class EditWorkshopComponent implements OnInit, OnDestroy {
       closingTime: this.toDisplayTime(workshop.horario_fin),
       backendState: workshop.estado,
       activeState: workshop.activo === false ? 'Inactivo' : 'Activo',
+      qr: workshop.qr ?? null,
     };
+  }
+
+  private getAssetUrl(path: string | null): string {
+    if (!path) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    return `${this.workshopService.getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
   }
 
   private toBackendTime(time: string): string {

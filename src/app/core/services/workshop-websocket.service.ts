@@ -46,6 +46,15 @@ export class WorkshopWebSocketService implements OnDestroy {
     return true;
   }
 
+  sendClientMessage(message: WebSocketMessage): boolean {
+    if (!this.clientWebSocket || this.clientWebSocket.readyState !== WebSocket.OPEN) {
+      return false;
+    }
+
+    this.clientWebSocket.send(JSON.stringify(message));
+    return true;
+  }
+
   onProviderMessage(callback: (message: WebSocketMessage) => void): void {
     if (!this.providerWebSocket) {
       this.connectProviderWebSocket();
