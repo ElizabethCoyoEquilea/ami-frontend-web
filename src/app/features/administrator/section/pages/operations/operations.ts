@@ -506,6 +506,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
       this.completedServices.set(
         services
           .filter((service) => this.normalizeStatus(service.estado) === 'pagado')
+          .sort((firstService, secondService) => this.compareDatesDescending(firstService.fecha_inicio, secondService.fecha_inicio))
           .map((service) => this.mapCompletedService(service)),
       );
     } catch (error) {
@@ -538,6 +539,25 @@ export class OperationsComponent implements OnInit, OnDestroy {
       montoTotal: Number(service.total),
       estado: service.estado,
     };
+  }
+
+  private compareDatesDescending(firstDate: string, secondDate: string): number {
+    const firstTime = new Date(firstDate).getTime();
+    const secondTime = new Date(secondDate).getTime();
+
+    if (Number.isNaN(firstTime) && Number.isNaN(secondTime)) {
+      return 0;
+    }
+
+    if (Number.isNaN(firstTime)) {
+      return 1;
+    }
+
+    if (Number.isNaN(secondTime)) {
+      return -1;
+    }
+
+    return secondTime - firstTime;
   }
 
   private mapServiceDetail(detail: WorkshopServiceDetailResponse): CompletedServiceDetail {

@@ -168,8 +168,8 @@ app-navbar {
 .bar-chart {
   align-items: end;
   display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.55rem;
+  grid-template-columns: repeat(12, minmax(2.15rem, 1fr));
   min-height: 19rem;
 }
 
@@ -196,6 +196,8 @@ app-navbar {
   display: flex;
   height: 15rem;
   overflow: hidden;
+  justify-self: center;
+  max-width: 3.6rem;
   width: 100%;
 }
 
@@ -231,6 +233,6 @@ app-navbar {
   }
 
   .bar-column {
-    min-width: 3.5rem;
+    min-width: 2.75rem;
   }
 }

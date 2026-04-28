@@ -13,11 +13,10 @@
       </section>
 
       <section class="kpi-grid" aria-label="Indicadores principales">
-        @for (kpi of kpis; track kpi.label) {
+        @for (kpi of kpis(); track kpi.label) {
           <article class="kpi-card" [class]="kpi.tone">
             <span>{{ kpi.label }}</span>
             <strong>{{ kpi.value }}</strong>
-            <p>{{ kpi.detail }}</p>
           </article>
         }
       </section>
@@ -33,7 +32,7 @@
           </div>
 
           <div class="operations-grid">
-            @for (operation of operationSummaries; track operation.label) {
+            @for (operation of operationSummaries(); track operation.label) {
               <article class="operation-card">
                 <span>{{ operation.label }}</span>
                 <strong>{{ operation.value }}</strong>
@@ -49,11 +48,11 @@
               <p class="eyebrow">Servicios</p>
               <h2>Cantidad por mes</h2>
             </div>
-            <span class="chart-total">481 servicios</span>
+            <span class="chart-total">{{ monthlyServicesTotal() }} servicios</span>
           </div>
 
           <div class="bar-chart" aria-label="Grafico de servicios por mes">
-            @for (service of monthlyServices; track service.month) {
+            @for (service of monthlyServices(); track service.month) {
               <div class="bar-column">
                 <span class="bar-value">{{ service.total }}</span>
                 <div class="bar-track">
