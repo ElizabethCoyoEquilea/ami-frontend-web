@@ -1,0 +1,10 @@
+<section class="toast-container" aria-live="polite" aria-atomic="true">
+  @for (notification of notificationService.notifications(); track notification.id) {
+    <article class="toast" [ngClass]="'toast--' + notification.type" role="status">
+      <p>{{ notification.message }}</p>
+      <button type="button" class="toast-close" (click)="dismiss(notification.id)" aria-label="Cerrar">
+        ×
+      </button>
+    </article>
+  }
+</section>

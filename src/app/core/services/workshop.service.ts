@@ -4,22 +4,20 @@ import { ApiService } from './api.service';
 
 export interface CreateWorkshopRequest {
   nombre: string;
-  descripcion: string;
+  descripcion: string | null;
   radio_cobertura: number;
   calificacion: number;
   direccion: string;
-  longitud: number;
-  latitud: number;
-  horario_inicio: string;
-  horario_fin: string;
-}
-
-export interface UpdateWorkshopRequest extends Omit<CreateWorkshopRequest, 'longitud' | 'latitud'> {
   longitud: number | null;
   latitud: number | null;
-  estado?: string;
-  activo: boolean;
+  horario_inicio: string;
+  horario_fin: string;
+  estado?: string | null;
+  activo?: boolean;
+  qr?: File | null;
 }
+
+export interface UpdateWorkshopRequest extends Partial<CreateWorkshopRequest> {}
 
 export interface WorkshopResponse {
   id_taller?: number;
@@ -35,6 +33,7 @@ export interface WorkshopResponse {
   horario_fin: string;
   estado?: string;
   activo?: boolean;
+  qr?: string | null;
 }
 
 export interface SendWorkshopInvitationRequest {
@@ -93,6 +92,7 @@ export interface WorkshopAssignmentRequest {
 
 export interface WorkshopAssignmentResponse {
   id_asignacion: number;
+  id_cotizacion?: number | null;
   id_solicitud: number;
   id_taller: number;
   id_catalogo_servicio: number | null;
@@ -112,16 +112,20 @@ export class WorkshopService {
     return this.apiService.get<WorkshopResponse[]>(this.myWorkshopsEndpoint);
   }
 
-  createWorkshop(workshop: CreateWorkshopRequest): Observable<unknown> {
-    return this.apiService.post<unknown, CreateWorkshopRequest>('/talleres', workshop);
+  getBaseUrl(): string {
+    return this.apiService.getBaseUrl();
+  }
+
+  createWorkshop(workshop: CreateWorkshopRequest): Observable<WorkshopResponse> {
+    return this.apiService.post<WorkshopResponse, FormData>('/talleres', this.toWorkshopFormData(workshop));
   }
 
   getWorkshopById(workshopId: number): Observable<WorkshopResponse> {
     return this.apiService.get<WorkshopResponse>(`/talleres/${workshopId}/detalle`);
   }
 
-  updateWorkshop(workshopId: number, workshop: UpdateWorkshopRequest): Observable<unknown> {
-    return this.apiService.put<unknown, UpdateWorkshopRequest>(`/talleres/${workshopId}`, workshop);
+  updateWorkshop(workshopId: number, workshop: UpdateWorkshopRequest): Observable<WorkshopResponse> {
+    return this.apiService.put<WorkshopResponse, FormData>(`/talleres/${workshopId}`, this.toWorkshopFormData(workshop));
   }
 
   deleteWorkshop(workshopId: number): Observable<unknown> {
@@ -143,5 +147,24 @@ export class WorkshopService {
 
   getWorkshopAssignments(workshopId: number): Observable<WorkshopAssignmentResponse[]> {
     return this.apiService.get<WorkshopAssignmentResponse[]>(`/talleres/${workshopId}/asignaciones`);
+  }
+
+  private toWorkshopFormData(workshop: CreateWorkshopRequest | UpdateWorkshopRequest): FormData {
+    const formData = new FormData();
+
+    Object.entries(workshop).forEach(([key, value]) => {
+      if (value === undefined || value === null) {
+        return;
+      }
+
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      formData.append(key, String(value));
+    });
+
+    return formData;
   }
 }

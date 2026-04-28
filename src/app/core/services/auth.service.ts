@@ -2,6 +2,32 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
 
+export interface AuthMeResponse {
+  id_usuario: number;
+  email: string;
+  activo: boolean;
+  persona: {
+    id_persona: number;
+    nombre_completo: string;
+    fecha_nacimiento: string;
+    genero: string;
+    telefono: string;
+    documento: string;
+  } | null;
+}
+
+export interface UpdateAuthMeRequest {
+  email: string;
+  contrasena?: string;
+  persona: {
+    nombre_completo: string;
+    fecha_nacimiento: string;
+    genero: string;
+    telefono: string;
+    documento: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -44,6 +70,14 @@ export class AuthService {
 
   resetPassword(email: string): Observable<{ result: boolean; message: string }> {
     return this.apiService.post<{ result: boolean; message: string }, { email: string }>('/auth/reset-password', { email });
+  }
+
+  getCurrentUser(): Observable<AuthMeResponse> {
+    return this.apiService.get<AuthMeResponse>('/auth/me');
+  }
+
+  updateCurrentUser(userData: UpdateAuthMeRequest): Observable<AuthMeResponse> {
+    return this.apiService.patch<AuthMeResponse, UpdateAuthMeRequest>('/auth/me', userData);
   }
 
   logout(): void {

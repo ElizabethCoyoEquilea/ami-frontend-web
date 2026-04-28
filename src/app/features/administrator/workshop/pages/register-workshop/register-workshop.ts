@@ -35,6 +35,7 @@ export class RegisterWorkshopComponent implements OnDestroy {
   successMessage = '';
   selectedLocation: { latitude: number; longitude: number } | null = null;
   locationTouched = false;
+  selectedQrFile: File | null = null;
 
   workshopForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required]],
@@ -62,6 +63,11 @@ export class RegisterWorkshopComponent implements OnDestroy {
 
   locationIsInvalid(): boolean {
     return this.locationTouched && !this.selectedLocation;
+  }
+
+  onQrFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedQrFile = input.files?.[0] ?? null;
   }
 
   async submitWorkshop(): Promise<void> {
@@ -99,6 +105,9 @@ export class RegisterWorkshopComponent implements OnDestroy {
       latitud: this.selectedLocation.latitude,
       horario_inicio: this.toBackendTime(formValue.openingTime),
       horario_fin: this.toBackendTime(formValue.closingTime),
+      estado: null,
+      activo: true,
+      qr: this.selectedQrFile,
     };
 
     try {

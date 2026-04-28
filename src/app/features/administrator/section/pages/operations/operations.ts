@@ -1,14 +1,21 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
-import { ApiService } from '../../../../../core/services/api.service';
-import { AuthService } from '../../../../../core/services/auth.service';
 import { PendingQuoteResponse, QuoteService } from '../../../../../core/services/quote.service';
 import {
   WorkshopAssignmentResponse,
   WorkshopProvider,
   WorkshopService,
 } from '../../../../../core/services/workshop.service';
+import {
+  WorkshopCompletedServiceResponse,
+  WorkshopOperationService,
+  WorkshopPaymentResponse,
+  WorkshopServiceDetailResponse,
+} from '../../../../../core/services/workshop-operation.service';
+import { WorkshopWebSocketService, type WebSocketMessage } from '../../../../../core/services/workshop-websocket.service';
+
+import { NotificationService } from '../../../../../shared/services/notification.service';
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
@@ -24,13 +31,15 @@ interface ServiceRequest {
   descripcion: string;
   prioridad: string;
   observaciones: string;
-  estado: 'Pendiente' | 'Aceptada' | 'Rechazada';
+  estado: string;
   fecha: string;
   direccion: string;
 }
 
 interface Assignment {
   id: number;
+  codigo: string;
+  cotizacionId: number | null;
   solicitudId: number;
   tallerId: number;
   catalogoServicioId: number | null;
@@ -39,19 +48,13 @@ interface Assignment {
   personalAsignado?: string;
 }
 
-interface ProviderSocketMessage {
-  tipo: string;
-  data: Record<string, unknown>;
-}
-
 interface CompletedService {
   id: number;
+  paymentId: number | null;
   fechaInicio: string;
   fechaFin: string;
   montoTotal: number;
-  calificacion: number;
-  servicios: CompletedServiceDetail[];
-  pago: ServicePayment;
+  estado: string;
 }
 
 interface CompletedServiceDetail {
@@ -66,23 +69,23 @@ interface ServicePayment {
   fecha: string;
   monto: number;
   metodo: string;
+  estado: string;
 }
 
 @Component({
   selector: 'app-operations',
-  imports: [AssignStaffFormComponent, NavbarComponent, RequestQuoteFormComponent, SidebarComponent],
+  imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent, RequestQuoteFormComponent],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
 export class OperationsComponent implements OnInit, OnDestroy {
-  private readonly apiService = inject(ApiService);
-  private readonly authService = inject(AuthService);
   private readonly quoteService = inject(QuoteService);
   private readonly workshopService = inject(WorkshopService);
+  private readonly operationService = inject(WorkshopOperationService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly wsService = inject(WorkshopWebSocketService);
   private readonly route = inject(ActivatedRoute);
-  private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
-  private providerWebSocket: WebSocket | null = null;
-  private pendingProviderMessage: ProviderSocketMessage | null = null;
+  private readonly workshopId = this.getWorkshopIdFromRoute();
 
   activeTab = signal<OperationsTab>('requests');
   selectedQuoteRequest = signal<ServiceRequest | null>(null);
@@ -91,6 +94,9 @@ export class OperationsComponent implements OnInit, OnDestroy {
   isLoadingRequests = signal(false);
   isLoadingAssignments = signal(false);
   isLoadingProviders = signal(false);
+  isLoadingServices = signal(false);
+  isLoadingServiceDetails = signal(false);
+  isLoadingPayment = signal(false);
   isSendingQuote = signal(false);
   rejectingQuoteId = signal<number | null>(null);
   requestsErrorMessage = signal('');
@@ -99,93 +105,44 @@ export class OperationsComponent implements OnInit, OnDestroy {
   websocketErrorMessage = signal('');
   quoteErrorMessage = signal('');
   quoteMessage = signal('');
+  servicesErrorMessage = signal('');
+  serviceDetailsErrorMessage = signal('');
+  paymentErrorMessage = signal('');
   submittedQuoteIds = signal<number[]>([]);
 
   requests = signal<ServiceRequest[]>([]);
   assignments = signal<Assignment[]>([]);
   availableStaff = signal<AvailableStaff[]>([]);
-
-  completedServices: CompletedService[] = [
-    {
-      id: 1,
-      fechaInicio: '2026-04-16',
-      fechaFin: '2026-04-16',
-      montoTotal: 280,
-      calificacion: 4.8,
-      servicios: [
-        {
-          nombre: 'Revision electrica',
-          descripcion: 'Scanner y diagnostico del sistema de arranque.',
-          precio: 180,
-          cantidad: 1,
-          subtotal: 180,
-        },
-        {
-          nombre: 'Cambio de fusible',
-          descripcion: 'Repuesto e instalacion.',
-          precio: 50,
-          cantidad: 2,
-          subtotal: 100,
-        },
-      ],
-      pago: {
-        fecha: '2026-04-16',
-        monto: 280,
-        metodo: 'Tarjeta',
-      },
-    },
-    {
-      id: 2,
-      fechaInicio: '2026-04-15',
-      fechaFin: '2026-04-15',
-      montoTotal: 150,
-      calificacion: 4.5,
-      servicios: [
-        {
-          nombre: 'Revision de frenos',
-          descripcion: 'Inspeccion de pastillas y disco delantero.',
-          precio: 150,
-          cantidad: 1,
-          subtotal: 150,
-        },
-      ],
-      pago: {
-        fecha: '2026-04-15',
-        monto: 150,
-        metodo: 'Efectivo',
-      },
-    },
-    {
-      id: 3,
-      fechaInicio: '2026-04-14',
-      fechaFin: '2026-04-14',
-      montoTotal: 520,
-      calificacion: 5,
-      servicios: [
-        {
-          nombre: 'Mantenimiento preventivo',
-          descripcion: 'Cambio de aceite, filtros y revision general.',
-          precio: 260,
-          cantidad: 2,
-          subtotal: 520,
-        },
-      ],
-      pago: {
-        fecha: '2026-04-14',
-        monto: 520,
-        metodo: 'Transferencia',
-      },
-    },
-  ];
+  completedServices = signal<CompletedService[]>([]);
+  selectedServiceDetails = signal<CompletedServiceDetail[]>([]);
+  selectedPayment = signal<ServicePayment | null>(null);
 
   ngOnInit(): void {
     void this.loadPendingRequests();
     void this.loadAssignments();
+    void this.loadCompletedServices();
+    this.setupProviderMessageListener();
+    this.setupClientMessageListener();
+  }
+
+  private getWorkshopIdFromRoute(): number {
+    let currentRoute: ActivatedRoute | null = this.route;
+
+    while (currentRoute) {
+      const workshopId = Number(currentRoute.snapshot.paramMap.get('id'));
+
+      if (Number.isInteger(workshopId) && workshopId > 0) {
+        return workshopId;
+      }
+
+      currentRoute = currentRoute.parent;
+    }
+
+    return 0;
   }
 
   ngOnDestroy(): void {
-    this.providerWebSocket?.close();
-    this.providerWebSocket = null;
+    // El servicio de websocket se mantiene conectado mientras esté en la sección
   }
 
   setActiveTab(tab: OperationsTab): void {
@@ -198,10 +155,14 @@ export class OperationsComponent implements OnInit, OnDestroy {
     if (tab === 'assignments') {
       void this.loadAssignments();
     }
+
+    if (tab === 'services') {
+      void this.loadCompletedServices();
+    }
   }
 
   visibleRequests(): ServiceRequest[] {
-    return this.requests().filter((request) => request.estado === 'Pendiente');
+    return this.requests();
   }
 
   async loadPendingRequests(): Promise<void> {
@@ -247,7 +208,11 @@ export class OperationsComponent implements OnInit, OnDestroy {
         this.workshopService.getWorkshopAssignments(this.workshopId).pipe(timeout(10000)),
       );
       const assignments = this.normalizeAssignmentsResponse(response);
-      this.assignments.set(assignments.map((assignment) => this.mapAssignment(assignment)));
+      this.assignments.set(
+        assignments
+          .map((assignment) => this.mapAssignment(assignment))
+          .filter((assignment) => this.assignmentShouldBeShown(assignment.estado)),
+      );
       this.selectedStaffAssignment.set(null);
     } catch (error) {
       this.assignments.set([]);
@@ -258,6 +223,10 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   openQuoteForm(request: ServiceRequest): void {
+    if (!this.requestIsPending(request)) {
+      return;
+    }
+
     this.quoteErrorMessage.set('');
     this.quoteMessage.set('');
     this.selectedQuoteRequest.set(request);
@@ -268,7 +237,8 @@ export class OperationsComponent implements OnInit, OnDestroy {
     return (
       this.submittedQuoteIds().includes(request.id) ||
       selectedRequestId === request.id ||
-      this.rejectingQuoteId() === request.id
+      this.rejectingQuoteId() === request.id ||
+      !this.requestIsPending(request)
     );
   }
 
@@ -285,6 +255,12 @@ export class OperationsComponent implements OnInit, OnDestroy {
     const request = this.selectedQuoteRequest();
 
     if (!request) {
+      return;
+    }
+
+    if (!this.requestIsPending(request)) {
+      this.quoteErrorMessage.set('La cotizacion ya fue enviada y no se puede modificar.');
+      this.selectedQuoteRequest.set(null);
       return;
     }
 
@@ -317,6 +293,10 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   async rejectRequest(request: ServiceRequest): Promise<void> {
+    if (!this.requestIsPending(request)) {
+      return;
+    }
+
     this.quoteErrorMessage.set('');
     this.quoteMessage.set('');
     this.rejectingQuoteId.set(request.id);
@@ -327,6 +307,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
         quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
       );
       this.quoteMessage.set('Cotizacion rechazada correctamente.');
+      await this.loadPendingRequests();
     } catch (error) {
       this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo rechazar la cotizacion.'));
     } finally {
@@ -337,7 +318,6 @@ export class OperationsComponent implements OnInit, OnDestroy {
   openStaffForm(assignment: Assignment): void {
     this.selectedStaffAssignment.set(assignment);
     this.websocketErrorMessage.set('');
-    this.connectProviderWebSocket();
     void this.loadAvailableStaff();
   }
 
@@ -379,26 +359,86 @@ export class OperationsComponent implements OnInit, OnDestroy {
     this.cancelStaffAssignment();
   }
 
-  cancelService(assignmentId: number): void {
+  cancelService(assignment: Assignment): void {
+    if (!assignment.cotizacionId) {
+      this.websocketErrorMessage.set('No se encontro la cotizacion asociada a esta asignacion.');
+      return;
+    }
+
+    const messageSent = this.sendClientSocketMessage({
+      tipo: 'admin_cancelo_servicio',
+      data: {
+        id_asignacion: assignment.id,
+        id_cotizacion: assignment.cotizacionId,
+        id_solicitud: assignment.solicitudId,
+      },
+    });
+
+    if (!messageSent) {
+      this.websocketErrorMessage.set('No se pudo notificar la cancelacion por WebSocket de clientes.');
+      return;
+    }
+
     this.assignments.update((assignments) =>
-      assignments.map((assignment) =>
-        assignment.id === assignmentId ? { ...assignment, estado: 'Servicio cancelado' } : assignment,
+      assignments.map((currentAssignment) =>
+        currentAssignment.id === assignment.id
+          ? { ...currentAssignment, estado: 'Servicio cancelado' }
+          : currentAssignment,
       ),
     );
   }
 
-  viewServiceDetail(service: CompletedService): void {
+  async viewServiceDetail(service: CompletedService): Promise<void> {
     this.selectedCompletedService.set(service);
+    this.selectedServiceDetails.set([]);
+    this.serviceDetailsErrorMessage.set('');
     this.activeTab.set('serviceDetail');
+
+    this.isLoadingServiceDetails.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.operationService.getServiceDetails(service.id).pipe(timeout(10000)),
+      );
+      this.selectedServiceDetails.set(
+        this.normalizeServiceDetailsResponse(response).map((detail) => this.mapServiceDetail(detail)),
+      );
+    } catch (error) {
+      this.serviceDetailsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar los detalles del servicio.'));
+    } finally {
+      this.isLoadingServiceDetails.set(false);
+    }
   }
 
-  viewPayment(service: CompletedService): void {
+  async viewPayment(service: CompletedService): Promise<void> {
+    if (!service.paymentId) {
+      this.paymentErrorMessage.set('No se encontro el pago asociado a este servicio.');
+      return;
+    }
+
     this.selectedCompletedService.set(service);
+    this.selectedPayment.set(null);
+    this.paymentErrorMessage.set('');
     this.activeTab.set('payment');
+
+    this.isLoadingPayment.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.operationService.getPayment(service.paymentId).pipe(timeout(10000)),
+      );
+      this.selectedPayment.set(this.mapPayment(response));
+    } catch (error) {
+      this.paymentErrorMessage.set(this.getErrorMessage(error, 'No se pudo cargar el pago del servicio.'));
+    } finally {
+      this.isLoadingPayment.set(false);
+    }
   }
 
   closeServiceInfo(): void {
     this.selectedCompletedService.set(null);
+    this.selectedServiceDetails.set([]);
+    this.selectedPayment.set(null);
+    this.serviceDetailsErrorMessage.set('');
+    this.paymentErrorMessage.set('');
     this.activeTab.set('services');
   }
 
@@ -413,20 +453,129 @@ export class OperationsComponent implements OnInit, OnDestroy {
       descripcion: request.descripcion,
       prioridad: this.formatPriority(request.prioridad),
       observaciones: request.observaciones?.trim() || 'Sin observaciones',
-      estado: 'Pendiente',
+      estado: this.formatQuoteStatus(quote.estado),
       fecha: this.formatDate(request.fecha),
       direccion: request.direccion,
     };
   }
 
+  private requestIsPending(request: ServiceRequest): boolean {
+    return this.normalizeStatus(request.estado) === 'pendiente';
+  }
+
+  private formatQuoteStatus(status: string): string {
+    const normalizedStatus = this.normalizeStatus(status);
+
+    if (!normalizedStatus) {
+      return 'Sin estado';
+    }
+
+    return normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1);
+  }
+
+  private normalizeStatus(status: string | null | undefined): string {
+    return status?.trim().toLowerCase() ?? '';
+  }
+
+  private assignmentShouldBeShown(status: string): boolean {
+    const normalizedStatus = this.normalizeStatus(status);
+
+    return (
+      normalizedStatus === 'pendiente de asignar personal' ||
+      normalizedStatus === 'enviada' ||
+      normalizedStatus === 'enviado'
+    );
+  }
+
+  async loadCompletedServices(): Promise<void> {
+    this.servicesErrorMessage.set('');
+
+    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+      this.completedServices.set([]);
+      this.servicesErrorMessage.set('No se encontro el taller seleccionado.');
+      return;
+    }
+
+    this.isLoadingServices.set(true);
+
+    try {
+      const response = await firstValueFrom(
+        this.operationService.getServicesByWorkshop(this.workshopId).pipe(timeout(10000)),
+      );
+      const services = this.normalizeCompletedServicesResponse(response);
+      this.completedServices.set(
+        services
+          .filter((service) => this.normalizeStatus(service.estado) === 'pagado')
+          .sort((firstService, secondService) => this.compareDatesDescending(firstService.fecha_inicio, secondService.fecha_inicio))
+          .map((service) => this.mapCompletedService(service)),
+      );
+    } catch (error) {
+      this.completedServices.set([]);
+      this.servicesErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar los servicios realizados.'));
+    } finally {
+      this.isLoadingServices.set(false);
+    }
+  }
+
   private mapAssignment(assignment: WorkshopAssignmentResponse): Assignment {
     return {
       id: assignment.id_asignacion,
+      codigo: `AS${assignment.id_asignacion}`,
+      cotizacionId: assignment.id_cotizacion ?? null,
       solicitudId: assignment.id_solicitud,
       tallerId: assignment.id_taller,
       catalogoServicioId: assignment.id_catalogo_servicio,
       fecha: this.formatDate(assignment.fecha),
       estado: assignment.estado,
+    };
+  }
+
+  private mapCompletedService(service: WorkshopCompletedServiceResponse): CompletedService {
+    return {
+      id: service.id_servicio,
+      paymentId: service.id_pago,
+      fechaInicio: this.formatDateTime(service.fecha_inicio),
+      fechaFin: service.fecha_fin ? this.formatDateTime(service.fecha_fin) : 'Sin registrar',
+      montoTotal: Number(service.total),
+      estado: service.estado,
+    };
+  }
+
+  private compareDatesDescending(firstDate: string, secondDate: string): number {
+    const firstTime = new Date(firstDate).getTime();
+    const secondTime = new Date(secondDate).getTime();
+
+    if (Number.isNaN(firstTime) && Number.isNaN(secondTime)) {
+      return 0;
+    }
+
+    if (Number.isNaN(firstTime)) {
+      return 1;
+    }
+
+    if (Number.isNaN(secondTime)) {
+      return -1;
+    }
+
+    return secondTime - firstTime;
+  }
+
+  private mapServiceDetail(detail: WorkshopServiceDetailResponse): CompletedServiceDetail {
+    return {
+      nombre: detail.nombre || detail.catalogo_servicio?.nombre || 'Servicio',
+      descripcion: detail.observacion?.trim() || detail.catalogo_servicio?.categoria || 'Sin observacion',
+      precio: Number(detail.precio),
+      cantidad: Number(detail.cantidad),
+      subtotal: Number(detail.sub_total),
+    };
+  }
+
+  private mapPayment(payment: WorkshopPaymentResponse): ServicePayment {
+    return {
+      fecha: payment.fecha ? this.formatDateTime(payment.fecha) : 'Sin registrar',
+      monto: Number(payment.monto),
+      metodo: payment.metodo?.trim() || 'Sin registrar',
+      estado: payment.estado,
     };
   }
 
@@ -448,7 +597,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
       const providers = this.normalizeProvidersResponse(response);
       this.availableStaff.set(
         providers
-          .filter((provider) => provider.estado?.trim().toLowerCase() !== 'inactivo')
+          .filter((provider) => provider.estado?.trim().toLowerCase() === 'disponible')
           .map((provider) => this.mapAvailableStaff(provider)),
       );
     } catch (error) {
@@ -471,6 +620,26 @@ export class OperationsComponent implements OnInit, OnDestroy {
   private normalizeAssignmentsResponse(
     response: WorkshopAssignmentResponse[] | { value?: WorkshopAssignmentResponse[] },
   ): WorkshopAssignmentResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    return response.value ?? [];
+  }
+
+  private normalizeCompletedServicesResponse(
+    response: WorkshopCompletedServiceResponse[] | { value?: WorkshopCompletedServiceResponse[] },
+  ): WorkshopCompletedServiceResponse[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    return response.value ?? [];
+  }
+
+  private normalizeServiceDetailsResponse(
+    response: WorkshopServiceDetailResponse[] | { value?: WorkshopServiceDetailResponse[] },
+  ): WorkshopServiceDetailResponse[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -507,69 +676,81 @@ export class OperationsComponent implements OnInit, OnDestroy {
     };
   }
 
-  private connectProviderWebSocket(): void {
-    if (
-      this.providerWebSocket &&
-      (this.providerWebSocket.readyState === WebSocket.OPEN ||
-        this.providerWebSocket.readyState === WebSocket.CONNECTING)
-    ) {
-      return;
-    }
-
-    const token = this.authService.getToken();
-
-    if (!token) {
-      this.websocketErrorMessage.set('No hay token de sesion para conectar al WebSocket.');
-      return;
-    }
-
-    const websocketUrl = `${this.apiService.getWebSocketBaseUrl()}/ws/proveedor?token=${encodeURIComponent(token)}`;
-
-    this.providerWebSocket = new WebSocket(websocketUrl);
-
-    this.providerWebSocket.onopen = () => {
-      this.websocketErrorMessage.set('');
-
-      if (this.pendingProviderMessage) {
-        this.providerWebSocket?.send(JSON.stringify(this.pendingProviderMessage));
-        this.pendingProviderMessage = null;
+  private setupProviderMessageListener(): void {
+    this.wsService.onProviderMessage((message: WebSocketMessage) => {
+      if (message.tipo === 'conexion_proveedor_ok') {
+        console.info('WebSocket proveedor conectado', message.data);
+        this.websocketErrorMessage.set('');
+        return;
       }
-    };
 
-    this.providerWebSocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data) as ProviderSocketMessage;
-        if (message.tipo === 'conexion_proveedor_ok') {
-          console.info('WebSocket proveedor conectado', message.data);
+      if (message.tipo === 'provider_acepto_resultado' || message.tipo === 'proveedor_acepto_resultado') {
+        const assignmentId = Number(message.data['id_asignacion']);
+
+        if (!Number.isInteger(assignmentId) || assignmentId <= 0) {
+          return;
         }
-      } catch {
-        console.warn('Mensaje WebSocket invalido recibido en proveedor.');
+
+        this.notificationService.info(`La asignacion AS${assignmentId} ha sido aceptada`);
+        void this.loadAssignments();
+        return;
       }
-    };
 
-    this.providerWebSocket.onerror = () => {
-      this.websocketErrorMessage.set('No se pudo establecer la conexion WebSocket con el servidor.');
-    };
-
-    this.providerWebSocket.onclose = () => {
-      this.providerWebSocket = null;
-    };
+      if (message.tipo === 'asignacion_rechazada') {
+        this.notificationService.error('Asignacion Rechazada');
+        void this.loadAssignments();
+      }
+    });
   }
 
-  private sendProviderSocketMessage(message: ProviderSocketMessage): boolean {
-    if (!this.providerWebSocket || this.providerWebSocket.readyState !== WebSocket.OPEN) {
-      this.pendingProviderMessage = message;
-      this.connectProviderWebSocket();
-
-      if (!this.providerWebSocket) {
-        return false;
+  private setupClientMessageListener(): void {
+    this.wsService.onClientMessage((message: WebSocketMessage) => {
+      if (message.tipo === 'nueva_cotizacion') {
+        this.handleNewQuoteMessage(message);
       }
 
-      return true;
+      if (message.tipo === 'respuesta_cotizacion_cliente') {
+        this.handleClientQuoteResponseMessage(message);
+      }
+    });
+  }
+
+  private handleNewQuoteMessage(message: WebSocketMessage): void {
+    const quoteWorkshopId = Number(message.data['id_taller']);
+
+    if (quoteWorkshopId !== this.workshopId) {
+      return;
     }
 
-    this.providerWebSocket.send(JSON.stringify(message));
-    return true;
+    this.notificationService.info('Tienes una nueva solicitud pendiente');
+    void this.loadPendingRequests();
+  }
+
+  private handleClientQuoteResponseMessage(message: WebSocketMessage): void {
+    const quoteWorkshopId = Number(message.data['id_taller']);
+
+    if (quoteWorkshopId !== this.workshopId) {
+      return;
+    }
+
+    const clientName = this.getMessageText(message.data['nombre_usuario'], 'El cliente');
+    const action = this.getMessageText(message.data['accion']).toLowerCase();
+    const actionText = action === 'acepto' || action === 'aceptó' ? 'acepto' : 'cancelo';
+
+    this.notificationService.info(`${clientName} ${actionText} la cotizacion`);
+    void this.loadPendingRequests();
+  }
+
+  private getMessageText(value: unknown, fallback = ''): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private sendProviderSocketMessage(message: WebSocketMessage): boolean {
+    return this.wsService.sendProviderMessage(message);
+  }
+
+  private sendClientSocketMessage(message: WebSocketMessage): boolean {
+    return this.wsService.sendClientMessage(message);
   }
 
   private formatPriority(priority: string | null): string {
@@ -591,6 +772,22 @@ export class OperationsComponent implements OnInit, OnDestroy {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+    });
+  }
+
+  private formatDateTime(date: string): string {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleString('es-BO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 

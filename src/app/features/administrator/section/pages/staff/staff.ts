@@ -19,7 +19,7 @@ interface ServiceProvider {
 
 @Component({
   selector: 'app-staff',
-  imports: [NavbarComponent, ReactiveFormsModule, SidebarComponent],
+  imports: [NavbarComponent, SidebarComponent, ReactiveFormsModule],
   templateUrl: './staff.html',
   styleUrl: './staff.css',
 })
@@ -27,7 +27,7 @@ export class StaffComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly workshopService = inject(WorkshopService);
   private readonly route = inject(ActivatedRoute);
-  private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
+  private readonly workshopId = this.getWorkshopIdFromRoute();
 
   activeTab = signal<StaffTab>('invite');
   invitationMessage = signal('');
@@ -40,6 +40,22 @@ export class StaffComponent {
   });
 
   serviceProviders = signal<ServiceProvider[]>([]);
+
+  private getWorkshopIdFromRoute(): number {
+    let currentRoute: ActivatedRoute | null = this.route;
+
+    while (currentRoute) {
+      const workshopId = Number(currentRoute.snapshot.paramMap.get('id'));
+
+      if (Number.isInteger(workshopId) && workshopId > 0) {
+        return workshopId;
+      }
+
+      currentRoute = currentRoute.parent;
+    }
+
+    return 0;
+  }
 
   setActiveTab(tab: StaffTab): void {
     this.activeTab.set(tab);

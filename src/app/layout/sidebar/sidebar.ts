@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { WorkshopOnboardingService } from '../../shared/services/workshop-onboarding.service';
 
 interface SidebarItem {
   label: string;
@@ -15,6 +16,7 @@ interface SidebarItem {
 export class SidebarComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly onboardingService = inject(WorkshopOnboardingService);
 
   readonly items: SidebarItem[] = [
     { label: 'Panel', section: 'dashboard' },
@@ -23,6 +25,10 @@ export class SidebarComponent {
     { label: 'Operaciones', section: 'operations' },
     { label: 'Reportes', section: 'reports' },
   ];
+
+  startOnboarding(): void {
+    this.onboardingService.start();
+  }
 
   getRoute(section: string): string[] {
     const workshopId = this.getWorkshopId();
@@ -35,6 +41,12 @@ export class SidebarComponent {
   }
 
   private getWorkshopId(): string | null {
+    const urlWorkshopId = this.router.url.match(/\/admin\/workshop\/([^/?#]+)/)?.[1];
+
+    if (urlWorkshopId) {
+      return urlWorkshopId;
+    }
+
     let currentRoute: ActivatedRoute | null = this.route;
 
     while (currentRoute) {
@@ -47,6 +59,6 @@ export class SidebarComponent {
       currentRoute = currentRoute.parent;
     }
 
-    return this.router.url.match(/\/admin\/workshop\/([^/]+)/)?.[1] ?? null;
+    return null;
   }
 }

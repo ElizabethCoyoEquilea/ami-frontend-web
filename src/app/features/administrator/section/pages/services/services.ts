@@ -11,7 +11,6 @@ import {
 import { WorkshopResponse, WorkshopService } from '../../../../../core/services/workshop.service';
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
-
 type ServicesTab = 'register' | 'catalog' | 'edit';
 
 interface WorkshopServiceItem {
@@ -27,7 +26,7 @@ interface WorkshopServiceItem {
 
 @Component({
   selector: 'app-services',
-  imports: [NavbarComponent, ReactiveFormsModule, SidebarComponent],
+  imports: [NavbarComponent, SidebarComponent, ReactiveFormsModule],
   templateUrl: './services.html',
   styleUrl: './services.css',
 })
@@ -37,7 +36,7 @@ export class ServicesComponent implements OnInit {
   private readonly workshopService = inject(WorkshopService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly workshopId = Number(this.route.snapshot.paramMap.get('id'));
+  private readonly workshopId = this.getWorkshopIdFromRoute();
 
   activeTab = signal<ServicesTab>('register');
   registerMessage = signal('');
@@ -69,6 +68,22 @@ export class ServicesComponent implements OnInit {
 
   ngOnInit(): void {
     void this.initializeServicesView();
+  }
+
+  private getWorkshopIdFromRoute(): number {
+    let currentRoute: ActivatedRoute | null = this.route;
+
+    while (currentRoute) {
+      const workshopId = Number(currentRoute.snapshot.paramMap.get('id'));
+
+      if (Number.isInteger(workshopId) && workshopId > 0) {
+        return workshopId;
+      }
+
+      currentRoute = currentRoute.parent;
+    }
+
+    return 0;
   }
 
   private async initializeServicesView(): Promise<void> {

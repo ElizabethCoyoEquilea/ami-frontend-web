@@ -56,6 +56,10 @@ export const routes: Routes = [
       },
       {
         path: 'workshop/:id',
+        loadComponent: () =>
+          import('./features/administrator/section/layout/workshop-section-layout').then(
+            (component) => component.WorkshopSectionLayoutComponent,
+          ),
         children: [
           {
             path: '',
@@ -97,6 +101,13 @@ export const routes: Routes = [
                 (component) => component.ReportsComponent,
               ),
           },
+          {
+            path: 'profile',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/profile/profile').then(
+                (component) => component.ProfileComponent,
+              ),
+          },
         ],
       },
       { path: 'dashboard', redirectTo: 'my-workshops' },
@@ -104,6 +115,7 @@ export const routes: Routes = [
       { path: 'services', redirectTo: 'my-workshops' },
       { path: 'operations', redirectTo: 'my-workshops' },
       { path: 'reports', redirectTo: 'my-workshops' },
+      { path: 'profile', redirectTo: 'my-workshops' },
     ],
   },
   { path: 'my-workshops', redirectTo: 'admin/my-workshops' },
@@ -115,6 +127,7 @@ export const routes: Routes = [
   { path: 'services', redirectTo: 'admin/my-workshops' },
   { path: 'operations', redirectTo: 'admin/my-workshops' },
   { path: 'reports', redirectTo: 'admin/my-workshops' },
+  { path: 'profile', redirectTo: 'admin/my-workshops' },
   {
     path: '**',
     redirectTo: '',

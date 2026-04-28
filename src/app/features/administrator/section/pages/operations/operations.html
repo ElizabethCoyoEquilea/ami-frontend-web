@@ -78,14 +78,6 @@
               <h2>Lista de solicitudes</h2>
               <p>Solicitudes pendientes de cotizacion para este taller.</p>
             </div>
-            <button
-              class="link-button"
-              type="button"
-              (click)="loadPendingRequests()"
-              [disabled]="isLoadingRequests()"
-            >
-              {{ isLoadingRequests() ? 'Recargando...' : 'Recargar' }}
-            </button>
           </div>
 
           @if (isLoadingRequests()) {
@@ -184,6 +176,7 @@
           } @else {
             <div class="assignments-list">
               <div class="assignments-header">
+                <span>Codigo</span>
                 <span>Fecha</span>
                 <span>Estado</span>
                 <span>Acciones</span>
@@ -191,6 +184,7 @@
 
               @for (assignment of assignments(); track assignment.id) {
                 <div class="assignment-row">
+                  <span class="main-text">{{ assignment.codigo }}</span>
                   <span>{{ assignment.fecha }}</span>
                   <span class="status-pill" [class.pending]="assignment.estado === 'Pendiente de asignar personal'">
                     {{ assignment.estado }}
@@ -200,7 +194,7 @@
                   </span>
                   <span class="row-actions assignment-actions">
                     <button type="button" (click)="openStaffForm(assignment)">Asignar personal</button>
-                    <button type="button" (click)="cancelService(assignment.id)">Cancelar Servicio</button>
+                    <button type="button" (click)="cancelService(assignment)">Cancelar Servicio</button>
                   </span>
                 </div>
               }
@@ -229,25 +223,37 @@
               <button class="link-button" type="button" (click)="closeServiceInfo()">Volver a servicios</button>
             </div>
 
-            <div class="service-detail-list">
-              <div class="service-detail-header">
-                <span>Nombre</span>
-                <span>Descripcion</span>
-                <span>Precio</span>
-                <span>Cantidad</span>
-                <span>Subtotal</span>
+            @if (isLoadingServiceDetails()) {
+              <div class="empty-state">
+                <h2>Cargando detalles...</h2>
+                <p>Estamos obteniendo los detalles del servicio.</p>
               </div>
-
-              @for (item of service.servicios; track item.nombre) {
-                <div class="service-detail-row">
-                  <span class="main-text">{{ item.nombre }}</span>
-                  <span>{{ item.descripcion }}</span>
-                  <span>{{ item.precio }} Bs</span>
-                  <span>{{ item.cantidad }}</span>
-                  <span>{{ item.subtotal }} Bs</span>
+            } @else if (serviceDetailsErrorMessage()) {
+              <div class="empty-state error-state">
+                <h2>No se pudieron cargar los detalles</h2>
+                <p>{{ serviceDetailsErrorMessage() }}</p>
+              </div>
+            } @else {
+              <div class="service-detail-list">
+                <div class="service-detail-header">
+                  <span>Nombre</span>
+                  <span>Descripcion</span>
+                  <span>Precio</span>
+                  <span>Cantidad</span>
+                  <span>Subtotal</span>
                 </div>
-              }
-            </div>
+
+                @for (item of selectedServiceDetails(); track item.nombre) {
+                  <div class="service-detail-row">
+                    <span class="main-text">{{ item.nombre }}</span>
+                    <span>{{ item.descripcion }}</span>
+                    <span>{{ item.precio }} Bs</span>
+                    <span>{{ item.cantidad }}</span>
+                    <span>{{ item.subtotal }} Bs</span>
+                  </div>
+                }
+              </div>
+            }
           }
         } @else if (activeTab() === 'payment') {
           @if (selectedCompletedService(); as service) {
@@ -259,19 +265,31 @@
               <button class="link-button" type="button" (click)="closeServiceInfo()">Volver a servicios</button>
             </div>
 
-            <div class="payment-list">
-              <div class="payment-header">
-                <span>Fecha</span>
-                <span>Monto</span>
-                <span>Metodo</span>
+            @if (isLoadingPayment()) {
+              <div class="empty-state">
+                <h2>Cargando pago...</h2>
+                <p>Estamos obteniendo el pago del servicio.</p>
               </div>
+            } @else if (paymentErrorMessage()) {
+              <div class="empty-state error-state">
+                <h2>No se pudo cargar el pago</h2>
+                <p>{{ paymentErrorMessage() }}</p>
+              </div>
+            } @else if (selectedPayment(); as payment) {
+              <div class="payment-list">
+                <div class="payment-header">
+                  <span>Fecha</span>
+                  <span>Monto</span>
+                  <span>Metodo</span>
+                </div>
 
-              <div class="payment-row">
-                <span>{{ service.pago.fecha }}</span>
-                <span class="main-text">{{ service.pago.monto }} Bs</span>
-                <span>{{ service.pago.metodo }}</span>
+                <div class="payment-row">
+                  <span>{{ payment.fecha }}</span>
+                  <span class="main-text">{{ payment.monto }} Bs</span>
+                  <span>{{ payment.metodo }}</span>
+                </div>
               </div>
-            </div>
+            }
           }
         } @else {
           <div class="panel-heading">
@@ -279,28 +297,45 @@
             <p>Historial de atenciones finalizadas.</p>
           </div>
 
+          @if (isLoadingServices()) {
+            <div class="empty-state">
+              <h2>Cargando servicios...</h2>
+              <p>Estamos obteniendo los servicios pagados del taller.</p>
+            </div>
+          } @else if (servicesErrorMessage()) {
+            <div class="empty-state error-state">
+              <h2>No se pudieron cargar los servicios</h2>
+              <p>{{ servicesErrorMessage() }}</p>
+            </div>
+          } @else if (completedServices().length === 0) {
+            <div class="empty-state">
+              <h2>No hay servicios pagados</h2>
+              <p>Cuando existan servicios con estado pagado, apareceran en esta lista.</p>
+            </div>
+          } @else {
             <div class="completed-services-list">
               <div class="completed-services-header">
                 <span>Fecha inicio</span>
                 <span>Fecha fin</span>
                 <span>Monto total</span>
-                <span>Calificacion</span>
+                <span>Estado</span>
                 <span>Acciones</span>
             </div>
 
-            @for (service of completedServices; track service.id) {
+            @for (service of completedServices(); track service.id) {
               <div class="completed-service-row">
                 <span>{{ service.fechaInicio }}</span>
                 <span>{{ service.fechaFin }}</span>
                 <span class="main-text">{{ service.montoTotal }} Bs</span>
-                <span>{{ service.calificacion }}/5</span>
+                <span>{{ service.estado }}</span>
                 <span class="row-actions completed-service-actions">
                   <button type="button" (click)="viewServiceDetail(service)">Ver detalle</button>
-                  <button type="button" (click)="viewPayment(service)">Ver pago</button>
+                  <button type="button" (click)="viewPayment(service)" [disabled]="!service.paymentId">Ver pago</button>
                 </span>
               </div>
             }
           </div>
+          }
         }
       </div>
     </div>

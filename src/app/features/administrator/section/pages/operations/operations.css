@@ -167,9 +167,9 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  justify-items: center;
-  text-align: center;
+  grid-template-columns: 7rem 10rem minmax(0, 1fr) 18rem;
+  justify-items: start;
+  text-align: left;
 }
 
 .completed-services-header,
@@ -312,9 +312,11 @@ app-navbar {
 }
 
 .assignment-actions {
-  align-items: stretch;
+  align-items: center;
   flex-direction: column;
-  width: min(18rem, 100%);
+  flex-wrap: nowrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .completed-service-actions {
@@ -325,6 +327,11 @@ app-navbar {
 .request-actions button,
 .assignment-actions button,
 .completed-service-actions button {
+  width: 100%;
+}
+
+.assignment-actions button {
+  min-width: 10rem;
   width: 100%;
 }
 
@@ -373,6 +380,14 @@ app-navbar {
   .payment-row {
     align-items: start;
     grid-template-columns: 1fr;
+  }
+
+  .assignment-actions {
+    flex-wrap: wrap;
+  }
+
+  .assignment-actions button {
+    width: 100%;
   }
 
   .detail-heading {

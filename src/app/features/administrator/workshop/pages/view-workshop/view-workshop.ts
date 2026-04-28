@@ -17,6 +17,7 @@ interface Workshop {
   rating?: number;
   longitude: number | null;
   latitude: number | null;
+  qr: string | null;
 }
 
 @Component({
@@ -102,6 +103,10 @@ export class ViewWorkshopComponent implements OnInit, OnDestroy {
     return workshop?.latitude !== null && workshop?.longitude !== null;
   }
 
+  get qrUrl(): string {
+    return this.getAssetUrl(this.workshop()?.qr ?? null);
+  }
+
   get calculatedState(): 'Abierto' | 'Cerrado' {
     const workshop = this.workshop();
 
@@ -167,7 +172,20 @@ export class ViewWorkshopComponent implements OnInit, OnDestroy {
       rating: workshop.calificacion,
       longitude: workshop.longitud,
       latitude: workshop.latitud,
+      qr: workshop.qr ?? null,
     };
+  }
+
+  private getAssetUrl(path: string | null): string {
+    if (!path) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    return `${this.workshopService.getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
   }
 
   private initializeMap(): void {

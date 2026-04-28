@@ -7,6 +7,7 @@
           [routerLink]="getRoute(item.section)"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
+          [attr.data-onboarding-target]="item.section"
         >
           {{ item.label }}
         </a>
@@ -14,5 +15,17 @@
     </nav>
   </div>
 
-  <a class="switch-workshop" routerLink="/admin/my-workshops">Cambiar de Taller</a>
+  <div class="sidebar-actions">
+    <a
+      class="profile-link"
+      [routerLink]="getRoute('profile')"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      data-onboarding-target="profile"
+    >
+      Mi Perfil
+    </a>
+    <button type="button" class="tour-button" (click)="startOnboarding()">Iniciar guia</button>
+    <a class="switch-workshop" routerLink="/admin/my-workshops">Cambiar de Taller</a>
+  </div>
 </aside>
