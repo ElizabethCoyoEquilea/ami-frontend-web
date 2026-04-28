@@ -14,5 +14,15 @@
     </nav>
   </div>
 
-  <a class="switch-workshop" routerLink="/admin/my-workshops">Cambiar de Taller</a>
+  <div class="sidebar-actions">
+    <a
+      class="profile-link"
+      [routerLink]="getRoute('profile')"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Mi Perfil
+    </a>
+    <a class="switch-workshop" routerLink="/admin/my-workshops">Cambiar de Taller</a>
+  </div>
 </aside>

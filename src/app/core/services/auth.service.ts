@@ -16,6 +16,18 @@ export interface AuthMeResponse {
   } | null;
 }
 
+export interface UpdateAuthMeRequest {
+  email: string;
+  contrasena?: string;
+  persona: {
+    nombre_completo: string;
+    fecha_nacimiento: string;
+    genero: string;
+    telefono: string;
+    documento: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -62,6 +74,10 @@ export class AuthService {
 
   getCurrentUser(): Observable<AuthMeResponse> {
     return this.apiService.get<AuthMeResponse>('/auth/me');
+  }
+
+  updateCurrentUser(userData: UpdateAuthMeRequest): Observable<AuthMeResponse> {
+    return this.apiService.patch<AuthMeResponse, UpdateAuthMeRequest>('/auth/me', userData);
   }
 
   logout(): void {

@@ -1,0 +1,158 @@
+<app-navbar></app-navbar>
+
+<main class="section-layout">
+  <app-sidebar></app-sidebar>
+  <section class="section-content">
+    <div class="profile-shell">
+      <section class="profile-header">
+        <div>
+          <p class="eyebrow">Mi perfil</p>
+          <h1>Datos del usuario</h1>
+          <p>Consulta tu informacion personal y actualiza tus credenciales cuando lo necesites.</p>
+        </div>
+      </section>
+
+      @if (isLoading()) {
+        <div class="status-card">Cargando datos del usuario...</div>
+      } @else {
+        @if (successMessage()) {
+          <p class="success-message">{{ successMessage() }}</p>
+        }
+
+        @if (errorMessage() && !isModalOpen()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+
+        <section class="profile-card">
+          <header class="card-header">
+            <div>
+              <p class="eyebrow">Cuenta</p>
+              <h2>{{ user()?.persona?.nombre_completo || user()?.email || 'Usuario' }}</h2>
+            </div>
+
+            <button type="button" (click)="openEditModal()">Editar / Actualizar Contrasena</button>
+          </header>
+
+          <div class="profile-grid">
+            <div class="profile-field">
+              <span>Email</span>
+              <strong>{{ user()?.email || 'Sin registrar' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Estado</span>
+              <strong>{{ user()?.activo ? 'Activo' : 'Inactivo' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Nombre completo</span>
+              <strong>{{ user()?.persona?.nombre_completo || 'Sin registrar' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Fecha de nacimiento</span>
+              <strong>{{ user()?.persona?.fecha_nacimiento || 'Sin registrar' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Genero</span>
+              <strong>{{ user()?.persona?.genero || 'Sin registrar' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Telefono</span>
+              <strong>{{ user()?.persona?.telefono || 'Sin registrar' }}</strong>
+            </div>
+
+            <div class="profile-field">
+              <span>Documento</span>
+              <strong>{{ user()?.persona?.documento || 'Sin registrar' }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+    </div>
+  </section>
+</main>
+
+@if (isModalOpen()) {
+  <div class="modal-backdrop" role="presentation" (click)="closeEditModal()">
+    <section class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Editar perfil</p>
+          <h2 id="profileModalTitle">Actualizar datos y contrasena</h2>
+        </div>
+      </header>
+
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+
+      <form class="profile-form" [formGroup]="profileForm" (ngSubmit)="saveChanges()">
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" />
+          @if (getFieldError('email')) {
+            <p class="field-error">{{ getFieldError('email') }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="contrasena">Contrasena</label>
+          <input id="contrasena" type="password" formControlName="contrasena" placeholder="Dejar vacio para no cambiar" />
+          @if (getFieldError('contrasena')) {
+            <p class="field-error">{{ getFieldError('contrasena') }}</p>
+          }
+        </div>
+
+        <div class="full-span">
+          <label for="nombre_completo">Nombre completo</label>
+          <input id="nombre_completo" type="text" formControlName="nombre_completo" />
+          @if (getFieldError('nombre_completo')) {
+            <p class="field-error">{{ getFieldError('nombre_completo') }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="fecha_nacimiento">Fecha de nacimiento</label>
+          <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" />
+          @if (getFieldError('fecha_nacimiento')) {
+            <p class="field-error">{{ getFieldError('fecha_nacimiento') }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="genero">Genero</label>
+          <select id="genero" formControlName="genero">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="telefono">Telefono</label>
+          <input id="telefono" type="tel" formControlName="telefono" />
+          @if (getFieldError('telefono')) {
+            <p class="field-error">{{ getFieldError('telefono') }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="documento">Documento</label>
+          <input id="documento" type="text" formControlName="documento" />
+          @if (getFieldError('documento')) {
+            <p class="field-error">{{ getFieldError('documento') }}</p>
+          }
+        </div>
+
+        <div class="form-actions full-span">
+          <button class="secondary-button" type="button" [disabled]="isSaving()" (click)="closeEditModal()">Cancelar</button>
+          <button type="submit" [disabled]="isSaving()">
+            {{ isSaving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

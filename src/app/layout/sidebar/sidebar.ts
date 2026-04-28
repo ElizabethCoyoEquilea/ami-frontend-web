@@ -35,6 +35,12 @@ export class SidebarComponent {
   }
 
   private getWorkshopId(): string | null {
+    const urlWorkshopId = this.router.url.match(/\/admin\/workshop\/([^/?#]+)/)?.[1];
+
+    if (urlWorkshopId) {
+      return urlWorkshopId;
+    }
+
     let currentRoute: ActivatedRoute | null = this.route;
 
     while (currentRoute) {
@@ -47,6 +53,6 @@ export class SidebarComponent {
       currentRoute = currentRoute.parent;
     }
 
-    return this.router.url.match(/\/admin\/workshop\/([^/]+)/)?.[1] ?? null;
+    return null;
   }
 }
