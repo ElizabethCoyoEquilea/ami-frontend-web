@@ -1,0 +1,38 @@
+@if (isOpen()) {
+  <div class="onboarding-backdrop" role="presentation" (click)="closeTour()"></div>
+
+  <section
+    class="onboarding-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-live="polite"
+    [style.top]="panelPosition().top"
+    [style.left]="panelPosition().left"
+    [style.right]="panelPosition().right"
+    [style.bottom]="panelPosition().bottom"
+    [style.transform]="panelPosition().transform"
+    [style.opacity]="panelPosition().opacity"
+    [style.pointer-events]="panelPosition().pointerEvents"
+  >
+    <div class="onboarding-badge">Guia del taller</div>
+
+    <header class="onboarding-header">
+      <div>
+        <p class="onboarding-step">Paso {{ currentStepIndex() + 1 }} de {{ totalSteps() }}</p>
+        <h2>{{ currentStep().label }}</h2>
+      </div>
+
+      <button type="button" class="close-button" aria-label="Cerrar guia" (click)="closeTour()">×</button>
+    </header>
+
+    <p class="onboarding-description">{{ currentStep().description }}</p>
+
+    <footer class="onboarding-actions">
+      <button type="button" class="secondary-button" [disabled]="!canGoBack()" (click)="previousStep()">Anterior</button>
+      <button type="button" class="secondary-button" (click)="closeTour()">Cerrar</button>
+      <button type="button" class="primary-button" (click)="nextStep()">
+        {{ isLastStep() ? 'Finalizar' : 'Siguiente' }}
+      </button>
+    </footer>
+  </section>
+}
