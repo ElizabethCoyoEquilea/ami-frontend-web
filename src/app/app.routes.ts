@@ -102,6 +102,20 @@ export const routes: Routes = [
               ),
           },
           {
+            path: 'operational',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/reports/operational/operational').then(
+                (component) => component.OperationalComponent,
+              ),
+          },
+          {
+            path: 'financial',
+            loadComponent: () =>
+              import('./features/administrator/section/pages/reports/financial/financial').then(
+                (component) => component.FinancialComponent,
+              ),
+          },
+          {
             path: 'profile',
             loadComponent: () =>
               import('./features/administrator/section/pages/profile/profile').then(
@@ -115,6 +129,8 @@ export const routes: Routes = [
       { path: 'services', redirectTo: 'my-workshops' },
       { path: 'operations', redirectTo: 'my-workshops' },
       { path: 'reports', redirectTo: 'my-workshops' },
+      { path: 'operational', redirectTo: 'my-workshops' },
+      { path: 'financial', redirectTo: 'my-workshops' },
       { path: 'profile', redirectTo: 'my-workshops' },
     ],
   },
@@ -127,6 +143,8 @@ export const routes: Routes = [
   { path: 'services', redirectTo: 'admin/my-workshops' },
   { path: 'operations', redirectTo: 'admin/my-workshops' },
   { path: 'reports', redirectTo: 'admin/my-workshops' },
+  { path: 'operational', redirectTo: 'admin/my-workshops' },
+  { path: 'financial', redirectTo: 'admin/my-workshops' },
   { path: 'profile', redirectTo: 'admin/my-workshops' },
   {
     path: '**',
