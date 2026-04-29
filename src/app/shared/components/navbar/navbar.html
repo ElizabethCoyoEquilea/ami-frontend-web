@@ -16,6 +16,18 @@
         Registrarse
       </a>
     } @else {
+      @if (showWorkshopGuide()) {
+        <button
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg font-black text-[var(--color-blanco)] transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-[var(--color-navbar)]"
+          type="button"
+          aria-label="Iniciar guia del taller"
+          title="Iniciar guia del taller"
+          (click)="startGuide()"
+        >
+          <span aria-hidden="true">?</span>
+        </button>
+      }
+
       <button
         class="rounded-md bg-[var(--color-boton-navbar)] px-3 py-2 text-sm font-bold text-[var(--color-blanco)] hover:bg-[var(--color-boton-hover)]"
         type="button"
