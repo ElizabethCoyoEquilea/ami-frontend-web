@@ -109,6 +109,16 @@ app-navbar {
   text-align: right;
 }
 
+.state-message {
+  color: var(--color-texto-secundario);
+  font-weight: 700;
+  margin: 0;
+}
+
+.state-message--error {
+  color: #b91c1c;
+}
+
 .report-actions {
   display: flex;
   justify-content: flex-end;
