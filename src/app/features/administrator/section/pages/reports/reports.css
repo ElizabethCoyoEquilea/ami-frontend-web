@@ -34,7 +34,7 @@ app-navbar {
 .reports-header,
 .filter-panel,
 .report-panel {
-  background: var(--color-tarjeta);
+  background: var(--color-formulario);
   border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
   box-shadow: 0 1rem 2rem rgba(11, 31, 77, 0.08);
@@ -71,11 +71,50 @@ app-navbar {
 }
 
 .filter-panel {
-  align-items: end;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-areas:
+    'copy copy copy'
+    'start end actions';
+  grid-template-columns: minmax(14rem, 1fr) minmax(14rem, 1fr) auto;
   padding: 1rem;
+}
+
+.filter-copy {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  grid-area: copy;
+  justify-content: space-between;
+}
+
+.filter-copy h2 {
+  color: var(--color-titulo);
+  font-weight: 800;
+  margin: 0;
+}
+
+.filter-copy > span {
+  background: var(--color-input);
+  border-radius: 999px;
+  color: var(--color-texto-secundario);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.45rem 0.7rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.date-field {
+  align-self: end;
+}
+
+.date-field:first-of-type {
+  grid-area: start;
+}
+
+.date-field:last-of-type {
+  grid-area: end;
 }
 
 .filter-panel label {
@@ -100,6 +139,11 @@ app-navbar {
 .filter-panel input:focus {
   border-color: var(--color-titulo);
   box-shadow: 0 0 0 0.2rem rgba(11, 31, 77, 0.1);
+}
+
+.filter-actions {
+  align-self: end;
+  grid-area: actions;
 }
 
 .filter-panel button {
@@ -133,25 +177,6 @@ app-navbar {
 
 .report-panel {
   padding: 1.25rem;
-}
-
-.panel-header {
-  align-items: start;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.panel-header > span {
-  background: var(--color-input);
-  border-radius: 999px;
-  color: var(--color-texto-secundario);
-  font-size: 0.8rem;
-  font-weight: 800;
-  padding: 0.45rem 0.7rem;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .metric-grid {
@@ -231,11 +256,21 @@ app-navbar {
     grid-template-columns: 1fr;
   }
 
+  .filter-panel {
+    grid-template-areas:
+      'copy'
+      'start'
+      'end'
+      'actions';
+    grid-template-columns: 1fr;
+  }
+
   .providers-header {
     display: none;
   }
 
-  .panel-header {
+  .filter-copy {
+    align-items: start;
     display: grid;
   }
 }

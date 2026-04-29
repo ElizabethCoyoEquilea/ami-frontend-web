@@ -1,0 +1,150 @@
+:host {
+  --admin-navbar-height: 4.5rem;
+  display: block;
+}
+
+app-navbar {
+  display: block;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
+.section-layout {
+  background: var(--color-fondo);
+  display: flex;
+  margin-top: var(--admin-navbar-height);
+  min-height: calc(100vh - 4.5rem);
+}
+
+.section-content {
+  flex: 1;
+  margin-left: 17rem;
+  padding: 2rem;
+}
+
+.report-shell {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 76rem;
+}
+
+.report-header,
+.report-card {
+  background: var(--color-formulario);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 2rem rgba(11, 31, 77, 0.08);
+}
+
+.report-header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  color: var(--color-titulo);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.report-header h1,
+.report-card h2 {
+  color: var(--color-titulo);
+  font-weight: 800;
+  margin: 0;
+}
+
+.report-header h1 {
+  font-size: 2rem;
+}
+
+.report-header p:last-child,
+.report-row span {
+  color: var(--color-texto-secundario);
+}
+
+.report-header p:last-child {
+  margin: 0.5rem 0 0;
+}
+
+.back-link {
+  color: var(--color-titulo);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.report-card {
+  padding: 1.25rem;
+}
+
+.report-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.report-row {
+  align-items: center;
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+}
+
+.report-row strong {
+  color: var(--color-titulo);
+  font-size: 1rem;
+  text-align: right;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.report-actions button {
+  background: var(--color-boton);
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--color-blanco);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.85rem 1.25rem;
+}
+
+.report-actions button:hover {
+  background: var(--color-boton-hover);
+}
+
+@media (max-width: 768px) {
+  .section-layout {
+    flex-direction: column;
+  }
+
+  .section-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .report-header,
+  .report-row,
+  .report-actions {
+    display: grid;
+  }
+
+  .report-actions {
+    justify-content: stretch;
+  }
+}
