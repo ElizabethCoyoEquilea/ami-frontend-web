@@ -9,6 +9,7 @@ export interface OperationalReportResponse {
   generado_en: string;
   resumen_general: {
     total_servicios_completados: number;
+    total_servicios_cancelados: number;
     tiempo_promedio_atencion_minutos: number;
     calificacion_promedio_atencion: number;
   };

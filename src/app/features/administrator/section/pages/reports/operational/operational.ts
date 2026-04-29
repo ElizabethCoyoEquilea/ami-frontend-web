@@ -41,6 +41,10 @@ export class OperationalComponent {
         value: this.formatInteger(summary.total_servicios_completados),
       },
       {
+        label: 'Total de servicios cancelados',
+        value: this.formatInteger(summary.total_servicios_cancelados),
+      },
+      {
         label: 'Tiempo promedio de atencion',
         value: `${this.formatInteger(summary.tiempo_promedio_atencion_minutos)} min`,
       },
