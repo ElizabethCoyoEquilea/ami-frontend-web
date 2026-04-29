@@ -17,19 +17,35 @@ export class ReportsComponent {
 
   operationalFilterForm = this.formBuilder.nonNullable.group({
     startDate: ['2026-04-01'],
-    endDate: ['2026-04-16'],
+    endDate: ['2026-04-29'],
   });
 
   financialFilterForm = this.formBuilder.nonNullable.group({
     startDate: ['2026-04-01'],
-    endDate: ['2026-04-16'],
+    endDate: ['2026-04-29'],
   });
 
   goToOperationalReport(): void {
-    void this.router.navigate(['../operational'], { relativeTo: this.route });
+    const { startDate, endDate } = this.operationalFilterForm.getRawValue();
+
+    void this.router.navigate(['../operational'], {
+      relativeTo: this.route,
+      queryParams: {
+        fecha_inicio: startDate,
+        fecha_fin: endDate,
+      },
+    });
   }
 
   goToFinancialReport(): void {
-    void this.router.navigate(['../financial'], { relativeTo: this.route });
+    const { startDate, endDate } = this.financialFilterForm.getRawValue();
+
+    void this.router.navigate(['../financial'], {
+      relativeTo: this.route,
+      queryParams: {
+        fecha_inicio: startDate,
+        fecha_fin: endDate,
+      },
+    });
   }
 }

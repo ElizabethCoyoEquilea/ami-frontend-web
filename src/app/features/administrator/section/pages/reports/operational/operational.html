@@ -8,62 +8,87 @@
         <div>
           <p class="eyebrow">Reporte operativo</p>
           <h1>Servicios y rendimiento del taller</h1>
-          <p>Vista generada con el resumen operativo del periodo seleccionado.</p>
+          @if (report(); as currentReport) {
+            <p>
+              Periodo {{ currentReport.fecha_inicio }} al {{ currentReport.fecha_fin }}.
+              Generado en {{ currentReport.generado_en }}.
+            </p>
+          } @else {
+            <p>Vista generada con el resumen operativo del periodo seleccionado.</p>
+          }
         </div>
         <a routerLink="../reports" class="back-link">Volver a reportes</a>
       </section>
 
-      <section class="report-card">
-        <h2>Resumen general</h2>
-        <div class="report-list">
-          @for (item of generalSummary; track item.label) {
-            <div class="report-row">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-          }
-        </div>
-      </section>
+      @if (isLoading()) {
+        <section class="report-card">
+          <p class="state-message">Generando reporte operativo...</p>
+        </section>
+      } @else if (errorMessage()) {
+        <section class="report-card">
+          <p class="state-message state-message--error">{{ errorMessage() }}</p>
+        </section>
+      } @else {
+        <section class="report-card">
+          <h2>Resumen general</h2>
+          <div class="report-list">
+            @for (item of generalSummary(); track item.label) {
+              <div class="report-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            } @empty {
+              <p class="state-message">No hay resumen disponible.</p>
+            }
+          </div>
+        </section>
 
-      <section class="report-card">
-        <h2>Servicios por tipo</h2>
-        <div class="report-list">
-          @for (item of servicesByType; track item.label) {
-            <div class="report-row">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-          }
-        </div>
-      </section>
+        <section class="report-card">
+          <h2>Servicios por tipo</h2>
+          <div class="report-list">
+            @for (item of servicesByType(); track item.label) {
+              <div class="report-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            } @empty {
+              <p class="state-message">No hay servicios por tipo en este periodo.</p>
+            }
+          </div>
+        </section>
 
-      <section class="report-card">
-        <h2>Servicios por tecnico</h2>
-        <div class="report-list">
-          @for (item of servicesByTechnician; track item.label) {
-            <div class="report-row">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-          }
-        </div>
-      </section>
+        <section class="report-card">
+          <h2>Servicios por tecnico</h2>
+          <div class="report-list">
+            @for (item of servicesByTechnician(); track item.label) {
+              <div class="report-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            } @empty {
+              <p class="state-message">No hay servicios por tecnico en este periodo.</p>
+            }
+          </div>
+        </section>
 
-      <section class="report-card">
-        <h2>Indicadores</h2>
-        <div class="report-list">
-          @for (item of indicators; track item.label) {
-            <div class="report-row">
-              <span>{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-          }
-        </div>
-      </section>
+        <section class="report-card">
+          <h2>Indicadores</h2>
+          <div class="report-list">
+            @for (item of indicators(); track item.label) {
+              <div class="report-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            } @empty {
+              <p class="state-message">No hay indicadores disponibles.</p>
+            }
+          </div>
+        </section>
 
-      <div class="report-actions">
-        <button type="button">Exportar reporte</button>
-      </div>
+        <div class="report-actions">
+          <button type="button" (click)="exportOperationalPdf()">Exportar reporte</button>
+        </div>
+      }
     </div>
   </section>
 </main>
