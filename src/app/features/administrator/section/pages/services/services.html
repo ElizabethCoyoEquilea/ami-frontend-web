@@ -79,11 +79,16 @@
             </div>
 
             <div>
-              <label for="categoria">Categoria</label>
-              <input id="categoria" type="text" formControlName="categoria" placeholder="Mantenimiento" />
+              <label for="especialidad">Especialidad</label>
+              <select id="especialidad" formControlName="id_especialidad">
+                <option [value]="0" disabled>Selecciona una especialidad</option>
+                @for (specialty of specialties(); track specialty.id_especialidad) {
+                  <option [ngValue]="specialty.id_especialidad">{{ specialty.nombre }}</option>
+                }
+              </select>
 
-              @if (registerFieldIsInvalid('categoria')) {
-                <p class="field-error">Ingresa la categoria.</p>
+              @if (registerFieldIsInvalid('id_especialidad')) {
+                <p class="field-error">Selecciona una especialidad.</p>
               }
             </div>
 
@@ -93,15 +98,6 @@
 
               @if (registerFieldIsInvalid('precio_estandar')) {
                 <p class="field-error">Ingresa un precio mayor a 0.</p>
-              }
-            </div>
-
-            <div>
-              <label for="unidad_medida">Unidad de medida</label>
-              <input id="unidad_medida" type="text" formControlName="unidad_medida" placeholder="Servicio" />
-
-              @if (registerFieldIsInvalid('unidad_medida')) {
-                <p class="field-error">Ingresa la unidad de medida.</p>
               }
             </div>
 
@@ -146,11 +142,16 @@
             </div>
 
             <div>
-              <label for="edit-categoria">Categoria</label>
-              <input id="edit-categoria" type="text" formControlName="categoria" placeholder="Mantenimiento" />
+              <label for="edit-especialidad">Especialidad</label>
+              <select id="edit-especialidad" formControlName="id_especialidad">
+                <option [value]="0" disabled>Selecciona una especialidad</option>
+                @for (specialty of specialties(); track specialty.id_especialidad) {
+                  <option [ngValue]="specialty.id_especialidad">{{ specialty.nombre }}</option>
+                }
+              </select>
 
-              @if (editFieldIsInvalid('categoria')) {
-                <p class="field-error">Ingresa la categoria.</p>
+              @if (editFieldIsInvalid('id_especialidad')) {
+                <p class="field-error">Selecciona una especialidad.</p>
               }
             </div>
 
@@ -160,15 +161,6 @@
 
               @if (editFieldIsInvalid('precio_estandar')) {
                 <p class="field-error">Ingresa un precio mayor a 0.</p>
-              }
-            </div>
-
-            <div>
-              <label for="edit-unidad-medida">Unidad de medida</label>
-              <input id="edit-unidad-medida" type="text" formControlName="unidad_medida" placeholder="Servicio" />
-
-              @if (editFieldIsInvalid('unidad_medida')) {
-                <p class="field-error">Ingresa la unidad de medida.</p>
               }
             </div>
 
@@ -226,6 +218,7 @@
               <div class="services-table-header">
                 <span>Nombre</span>
                 <span>Descripcion</span>
+                <span>Especialidad</span>
                 <span>Precio</span>
                 <span>Estado</span>
                 <span>Acciones</span>
@@ -235,7 +228,8 @@
                 <div class="service-row">
                   <span class="service-name">{{ service.nombre }}</span>
                   <span>{{ service.descripcion || 'Sin descripcion' }}</span>
-                  <span>{{ service.precio_estandar }} / {{ service.unidad_medida }}</span>
+                  <span>{{ service.especialidad?.nombre || 'Sin especialidad' }}</span>
+                  <span>{{ service.precio_estandar }} Bs</span>
                   <span class="status-pill" [class.inactive]="service.estado.toLowerCase() !== 'activo'">
                     {{ service.estado }}
                   </span>

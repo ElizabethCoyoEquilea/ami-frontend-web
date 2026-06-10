@@ -3,9 +3,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
 import {
-  CatalogServiceRequest,
+  CatalogServiceCreateRequest,
   CatalogServiceResponse,
   CatalogServiceService,
+  CatalogServiceSpecialty,
   CatalogServiceUpdateRequest,
 } from '../../../../../core/services/catalog-service.service';
 import { WorkshopResponse, WorkshopService } from '../../../../../core/services/workshop.service';
@@ -16,12 +17,14 @@ type ServicesTab = 'register' | 'catalog' | 'edit';
 interface WorkshopServiceItem {
   id: number;
   id_taller: number;
+  id_especialidad?: number;
   nombre: string;
   descripcion: string | null;
-  categoria: string;
+  categoria?: string;
   precio_estandar: number;
-  unidad_medida: string;
+  unidad_medida?: string;
   estado: string;
+  especialidad?: CatalogServiceSpecialty;
 }
 
 @Component({
@@ -48,21 +51,20 @@ export class ServicesComponent implements OnInit {
   isSaving = signal(false);
   editingServiceId = signal<number | null>(null);
   services = signal<WorkshopServiceItem[]>([]);
+  specialties = signal<CatalogServiceSpecialty[]>([]);
 
   registerForm = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required]],
     descripcion: [''],
-    categoria: ['', [Validators.required]],
+    id_especialidad: [0, [Validators.min(1)]],
     precio_estandar: [0, [Validators.required, Validators.min(0.01)]],
-    unidad_medida: ['', [Validators.required]],
   });
 
   editForm = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required]],
     descripcion: [''],
-    categoria: ['', [Validators.required]],
+    id_especialidad: [0, [Validators.min(1)]],
     precio_estandar: [0, [Validators.required, Validators.min(0.01)]],
-    unidad_medida: ['', [Validators.required]],
     isActive: [true],
   });
 
@@ -104,6 +106,7 @@ export class ServicesComponent implements OnInit {
 
       this.isAuthorizing.set(false);
       await this.loadServices();
+      await this.loadSpecialties();
     } catch (error) {
       if (this.isForbiddenOrNotFound(error)) {
         await this.rejectAccess('No tienes acceso a los servicios de este taller.');
@@ -219,9 +222,8 @@ export class ServicesComponent implements OnInit {
     this.editForm.reset({
       nombre: service.nombre,
       descripcion: service.descripcion ?? '',
-      categoria: service.categoria,
+      id_especialidad: service.id_especialidad ?? service.especialidad?.id_especialidad ?? 0,
       precio_estandar: service.precio_estandar,
-      unidad_medida: service.unidad_medida,
       isActive: !this.serviceIsInactive(service),
     });
     this.activeTab.set('edit');
@@ -262,16 +264,24 @@ export class ServicesComponent implements OnInit {
     }
   }
 
-  private buildCreatePayload(): CatalogServiceRequest {
+  private async loadSpecialties(): Promise<void> {
+    try {
+      const specialties = await firstValueFrom(this.catalogService.getSpecialties().pipe(timeout(10000)));
+      this.specialties.set(specialties);
+    } catch {
+      this.specialties.set([]);
+    }
+  }
+
+  private buildCreatePayload(): CatalogServiceCreateRequest {
     const formValue = this.registerForm.getRawValue();
     const descripcion = formValue.descripcion.trim();
 
     return {
       id_taller: this.workshopId,
+      id_especialidad: Number(formValue.id_especialidad),
       nombre: formValue.nombre.trim(),
       descripcion: descripcion ? descripcion : null,
-      categoria: formValue.categoria.trim(),
-      unidad_medida: formValue.unidad_medida.trim(),
       precio_estandar: Number(formValue.precio_estandar),
     };
   }
@@ -282,10 +292,9 @@ export class ServicesComponent implements OnInit {
 
     return {
       id_taller: this.workshopId,
+      id_especialidad: Number(formValue.id_especialidad),
       nombre: formValue.nombre.trim(),
       descripcion: descripcion ? descripcion : null,
-      categoria: formValue.categoria.trim(),
-      unidad_medida: formValue.unidad_medida.trim(),
       precio_estandar: Number(formValue.precio_estandar),
       estado: formValue.isActive ? 'activo' : 'inactivo',
     };
@@ -295,9 +304,8 @@ export class ServicesComponent implements OnInit {
     this.registerForm.reset({
       nombre: '',
       descripcion: '',
-      categoria: '',
+      id_especialidad: 0,
       precio_estandar: 0,
-      unidad_medida: '',
     });
   }
 
@@ -306,9 +314,8 @@ export class ServicesComponent implements OnInit {
     this.editForm.reset({
       nombre: '',
       descripcion: '',
-      categoria: '',
+      id_especialidad: 0,
       precio_estandar: 0,
-      unidad_medida: '',
       isActive: true,
     });
   }
@@ -317,12 +324,14 @@ export class ServicesComponent implements OnInit {
     return {
       id: service.id_catalogo_servicio ?? service.id ?? fallbackId,
       id_taller: service.id_taller,
+      id_especialidad: service.id_especialidad,
       nombre: service.nombre,
       descripcion: service.descripcion,
       categoria: service.categoria,
       precio_estandar: Number(service.precio_estandar),
       unidad_medida: service.unidad_medida,
       estado: service.estado ?? 'activo',
+      especialidad: service.especialidad,
     };
   }
 

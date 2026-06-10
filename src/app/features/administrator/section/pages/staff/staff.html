@@ -68,11 +68,52 @@
           } @else if (serviceProviders().length === 0) {
             <p class="success-message">Aun no hay proveedores registrados.</p>
           } @else {
+            @if (providerEditMessage()) {
+              <p class="success-message">{{ providerEditMessage() }}</p>
+            }
+
+            @if (editingProvider()) {
+              <div class="provider-edit-panel">
+                <div class="provider-edit-heading">
+                  <div>
+                    <h2>Editar proveedor</h2>
+                    <p>{{ editingProvider()?.name }}</p>
+                  </div>
+
+                  <button type="button" class="secondary-button" (click)="cancelProviderEdit()" [disabled]="isSavingProvider()">
+                    Cancelar
+                  </button>
+                </div>
+
+                @if (isLoadingSpecialties()) {
+                  <p class="success-message">Cargando especialidades...</p>
+                } @else {
+                  <div class="specialty-checklist">
+                    @for (specialty of specialties(); track specialty.id_especialidad) {
+                      <label>
+                        <input
+                          type="checkbox"
+                          [checked]="specialtyIsSelected(specialty.id_especialidad)"
+                          (change)="toggleSpecialty(specialty.id_especialidad, $any($event.target).checked)"
+                        />
+                        <span>{{ specialty.nombre }}</span>
+                      </label>
+                    }
+                  </div>
+
+                  <button type="button" class="save-provider-button" (click)="saveProviderSpecialties()" [disabled]="isSavingProvider()">
+                    {{ isSavingProvider() ? 'Guardando...' : 'Guardar cambios' }}
+                  </button>
+                }
+              </div>
+            }
+
             <div class="providers-list">
               <div class="providers-header">
                 <span>Nombre</span>
                 <span>Especialidad</span>
                 <span>Estado</span>
+                <span>Acciones</span>
               </div>
 
               @for (provider of serviceProviders(); track provider.id) {
@@ -85,6 +126,9 @@
                     [class.busy]="provider.status === 'Ocupado'"
                   >
                     {{ provider.status }}
+                  </span>
+                  <span class="provider-actions">
+                    <button type="button" (click)="editProvider(provider)">Editar</button>
                   </span>
                 </div>
               }

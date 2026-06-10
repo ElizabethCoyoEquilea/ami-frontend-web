@@ -60,12 +60,34 @@ export interface WorkshopProviderUser {
   persona: WorkshopProviderPerson | null;
 }
 
+export interface WorkshopProviderSpecialty {
+  id_proveedor_especialidad: number;
+  id_proveedor: number;
+  id_especialidad: number;
+  activo: boolean;
+  especialidad: {
+    id_especialidad: number;
+    codigo: string;
+    nombre: string;
+    descripcion: string;
+  };
+}
+
 export interface WorkshopProvider {
   id_proveedor: number;
   id_usuario: number;
   id_taller: number;
   estado: string | null;
-  especialidad: string | null;
+  especialidad?: string | null;
+  id_especialidad?: number | null;
+  ids_especialidades?: number[];
+  proveedor_especialidades?: WorkshopProviderSpecialty[];
+  especialidades?: {
+    id_especialidad: number;
+    codigo?: string;
+    nombre?: string;
+    descripcion?: string;
+  }[];
   usuario: WorkshopProviderUser;
 }
 
@@ -73,6 +95,11 @@ export interface WorkshopProvidersResponse {
   id_taller: number;
   total_proveedores: number;
   proveedores: WorkshopProvider[];
+}
+
+export interface UpdateWorkshopProviderServiceRequest {
+  id_proveedor_servicio: number;
+  ids_especialidades: number[];
 }
 
 export interface WorkshopAssignmentRequest {
@@ -143,6 +170,16 @@ export class WorkshopService {
 
   getWorkshopProviders(workshopId: number): Observable<WorkshopProvidersResponse> {
     return this.apiService.get<WorkshopProvidersResponse>(`/talleres/${workshopId}/proveedores`);
+  }
+
+  updateWorkshopProviderService(
+    workshopId: number,
+    payload: UpdateWorkshopProviderServiceRequest,
+  ): Observable<WorkshopProvider> {
+    return this.apiService.put<WorkshopProvider, UpdateWorkshopProviderServiceRequest>(
+      `/talleres/${workshopId}/proveedor-servicio`,
+      payload,
+    );
   }
 
   getWorkshopAssignments(workshopId: number): Observable<WorkshopAssignmentResponse[]> {

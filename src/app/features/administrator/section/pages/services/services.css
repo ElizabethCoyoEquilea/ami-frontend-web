@@ -132,7 +132,8 @@ app-navbar {
 }
 
 .service-form input:not([type='checkbox']),
-.service-form textarea {
+.service-form textarea,
+.service-form select {
   background: var(--color-input);
   border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
@@ -142,9 +143,20 @@ app-navbar {
   width: 100%;
 }
 
+.service-form select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23465768' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-position: right 0.9rem center;
+  background-repeat: no-repeat;
+  background-size: 0.75rem auto;
+  padding-right: 2.5rem;
+}
+
 .service-form input:not([type='checkbox']):focus,
-.service-form textarea:focus {
+.service-form textarea:focus,
+.service-form select:focus {
   border-color: var(--color-titulo);
+  box-shadow: 0 0 0 0.2rem rgba(11, 31, 77, 0.1);
 }
 
 .form-actions {
@@ -276,7 +288,24 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr 1.4fr 0.8fr 7rem 8rem;
+  grid-template-columns: 1fr 1.1fr 1fr minmax(5.5rem, 6rem) minmax(5.5rem, 6.5rem) minmax(6rem, 7rem);
+}
+
+.service-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-row span.service-name {
+  white-space: normal;
+}
+
+.service-row span:nth-child(2) {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: initial;
+  white-space: normal;
 }
 
 .services-table-header {
@@ -288,6 +317,7 @@ app-navbar {
 }
 
 .service-row {
+  align-items: start;
   background: var(--color-input);
   border: 1px solid var(--color-borde);
   border-radius: 0.5rem;

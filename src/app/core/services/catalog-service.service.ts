@@ -2,16 +2,31 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
-export interface CatalogServiceRequest {
+export interface CatalogServiceSpecialty {
+  id_especialidad: number;
+  codigo: string;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface CatalogServiceCreateRequest {
   id_taller: number;
+  id_especialidad: number;
   nombre: string;
   descripcion: string | null;
-  categoria: string;
-  unidad_medida: string;
   precio_estandar: number;
 }
 
-export interface CatalogServiceUpdateRequest extends CatalogServiceRequest {
+export interface CatalogServiceRequest extends CatalogServiceCreateRequest {}
+
+export interface CatalogServiceUpdateRequest {
+  id_taller: number;
+  id_especialidad?: number;
+  nombre: string;
+  descripcion: string | null;
+  precio_estandar: number;
+  categoria?: string;
+  unidad_medida?: string;
   estado?: string;
 }
 
@@ -19,6 +34,7 @@ export interface CatalogServiceResponse extends CatalogServiceUpdateRequest {
   id_catalogo_servicio?: number;
   id?: number;
   fecha_creacion?: string;
+  especialidad?: CatalogServiceSpecialty;
 }
 
 @Injectable({
@@ -36,8 +52,12 @@ export class CatalogServiceService {
     return this.apiService.get<CatalogServiceResponse[]>(`${this.endpoint}/taller/${workshopId}`);
   }
 
-  createService(service: CatalogServiceRequest): Observable<CatalogServiceResponse> {
-    return this.apiService.post<CatalogServiceResponse, CatalogServiceRequest>(this.endpoint, service);
+  getSpecialties(): Observable<CatalogServiceSpecialty[]> {
+    return this.apiService.get<CatalogServiceSpecialty[]>(`${this.endpoint}/especialidades`);
+  }
+
+  createService(service: CatalogServiceCreateRequest): Observable<CatalogServiceResponse> {
+    return this.apiService.post<CatalogServiceResponse, CatalogServiceCreateRequest>(this.endpoint, service);
   }
 
   updateService(serviceId: number, service: CatalogServiceUpdateRequest): Observable<CatalogServiceResponse> {
