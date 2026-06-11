@@ -600,13 +600,13 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
   private setupProviderMessageListener(): void {
     this.wsService.onProviderMessage((message: WebSocketMessage) => {
-      if (this.normalizeMessageType(message.tipo) === 'nueva solicitud') {
-        this.notificationService.info('Tienes una nueva solicitud');
+      if (this.isNewRequestMessage(message)) {
+        this.handleNewRequestMessage();
+        return;
+      }
 
-        if (this.activeTab() === 'requests') {
-          void this.loadPendingRequests();
-        }
-
+      if (this.isExpiredInvitationMessage(message)) {
+        this.handleExpiredInvitationMessage();
         return;
       }
 
@@ -637,6 +637,11 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
   private setupClientMessageListener(): void {
     this.wsService.onClientMessage((message: WebSocketMessage) => {
+      if (this.isNewRequestMessage(message)) {
+        this.handleNewRequestMessage();
+        return;
+      }
+
       if (message.tipo === 'nueva_cotizacion') {
         this.handleNewQuoteMessage(message);
       }
@@ -645,6 +650,28 @@ export class OperationsComponent implements OnInit, OnDestroy {
         this.handleClientQuoteResponseMessage(message);
       }
     });
+  }
+
+  private isNewRequestMessage(message: WebSocketMessage): boolean {
+    return this.normalizeMessageType(message.tipo) === 'nueva solicitud';
+  }
+
+  private isExpiredInvitationMessage(message: WebSocketMessage): boolean {
+    return this.normalizeMessageType(message.tipo) === 'invitacion_expirada';
+  }
+
+  private handleNewRequestMessage(): void {
+    this.notificationService.info('Tienes una nueva solicitud');
+
+    if (this.activeTab() === 'requests') {
+      void this.loadPendingRequests();
+    }
+  }
+
+  private handleExpiredInvitationMessage(): void {
+    if (this.activeTab() === 'requests') {
+      void this.loadPendingRequests();
+    }
   }
 
   private handleNewQuoteMessage(message: WebSocketMessage): void {
