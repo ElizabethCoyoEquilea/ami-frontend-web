@@ -128,6 +128,36 @@ export interface WorkshopAssignmentResponse {
   solicitud: WorkshopAssignmentRequest;
 }
 
+export interface WorkshopRequestResponse {
+  id_solicitud: number;
+  id_vehiculo: number;
+  descripcion: string;
+  latitud: number | null;
+  longitud: number | null;
+  direccion: string;
+  fecha: string;
+  prioridad: string | null;
+  observaciones: string | null;
+  audio: string | null;
+  imagenes: string[] | null;
+  ronda_actual: number;
+  estado: string;
+  recomendacion: string | null;
+  distancia_desde_taller: number | null;
+  invitacion: WorkshopRequestInvitationResponse | null;
+}
+
+export interface WorkshopRequestInvitationResponse {
+  id_invitacion: number;
+  id_solicitud: number;
+  id_taller: number;
+  numero_ronda: number;
+  estado: string;
+  fecha_hora_envio: string;
+  fecha_hora_expiracion: string;
+  fecha_hora_respuesta: string | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -184,6 +214,10 @@ export class WorkshopService {
 
   getWorkshopAssignments(workshopId: number): Observable<WorkshopAssignmentResponse[]> {
     return this.apiService.get<WorkshopAssignmentResponse[]>(`/talleres/${workshopId}/asignaciones`);
+  }
+
+  getWorkshopRequests(workshopId: number): Observable<WorkshopRequestResponse[]> {
+    return this.apiService.get<WorkshopRequestResponse[]>(`/talleres/${workshopId}/solicitudes`);
   }
 
   private toWorkshopFormData(workshop: CreateWorkshopRequest | UpdateWorkshopRequest): FormData {

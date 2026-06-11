@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
-import { PendingQuoteResponse, QuoteService } from '../../../../../core/services/quote.service';
 import {
   WorkshopAssignmentResponse,
   WorkshopProvider,
+  WorkshopRequestResponse,
   WorkshopService,
 } from '../../../../../core/services/workshop.service';
 import {
@@ -19,21 +19,25 @@ import { NotificationService } from '../../../../../shared/services/notification
 import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 import { AssignStaffFormComponent, type AvailableStaff } from './assign-staff-form/assign-staff-form';
-import { RequestQuoteFormComponent } from './request-quote-form/request-quote-form';
 
 type OperationsTab = 'requests' | 'assignments' | 'services' | 'serviceDetail' | 'payment';
 
 interface ServiceRequest {
   id: number;
   solicitudId: number;
-  tallerId: number;
   vehiculoId: number;
   descripcion: string;
+  latitud: number | null;
+  longitud: number | null;
   prioridad: string;
   observaciones: string;
   estado: string;
   fecha: string;
   direccion: string;
+  audioUrl: string | null;
+  imageUrls: string[];
+  rondaActual: number;
+  distancia: string;
 }
 
 interface Assignment {
@@ -74,12 +78,11 @@ interface ServicePayment {
 
 @Component({
   selector: 'app-operations',
-  imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent, RequestQuoteFormComponent],
+  imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
 export class OperationsComponent implements OnInit, OnDestroy {
-  private readonly quoteService = inject(QuoteService);
   private readonly workshopService = inject(WorkshopService);
   private readonly operationService = inject(WorkshopOperationService);
   private readonly notificationService = inject(NotificationService);
@@ -88,7 +91,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
   private readonly workshopId = this.getWorkshopIdFromRoute();
 
   activeTab = signal<OperationsTab>('requests');
-  selectedQuoteRequest = signal<ServiceRequest | null>(null);
+  selectedRequestDetail = signal<ServiceRequest | null>(null);
   selectedStaffAssignment = signal<Assignment | null>(null);
   selectedCompletedService = signal<CompletedService | null>(null);
   isLoadingRequests = signal(false);
@@ -97,18 +100,13 @@ export class OperationsComponent implements OnInit, OnDestroy {
   isLoadingServices = signal(false);
   isLoadingServiceDetails = signal(false);
   isLoadingPayment = signal(false);
-  isSendingQuote = signal(false);
-  rejectingQuoteId = signal<number | null>(null);
   requestsErrorMessage = signal('');
   assignmentsErrorMessage = signal('');
   providersErrorMessage = signal('');
   websocketErrorMessage = signal('');
-  quoteErrorMessage = signal('');
-  quoteMessage = signal('');
   servicesErrorMessage = signal('');
   serviceDetailsErrorMessage = signal('');
   paymentErrorMessage = signal('');
-  submittedQuoteIds = signal<number[]>([]);
 
   requests = signal<ServiceRequest[]>([]);
   assignments = signal<Assignment[]>([]);
@@ -165,6 +163,14 @@ export class OperationsComponent implements OnInit, OnDestroy {
     return this.requests();
   }
 
+  openRequestDetail(request: ServiceRequest): void {
+    this.selectedRequestDetail.set(request);
+  }
+
+  closeRequestDetail(): void {
+    this.selectedRequestDetail.set(null);
+  }
+
   async loadPendingRequests(): Promise<void> {
     this.requestsErrorMessage.set('');
 
@@ -178,15 +184,17 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
     try {
       const response = await firstValueFrom(
-        this.quoteService.getPendingQuotesByWorkshop(this.workshopId).pipe(timeout(10000)),
+        this.workshopService.getWorkshopRequests(this.workshopId).pipe(timeout(10000)),
       );
-      const quotes = this.normalizePendingQuotesResponse(response);
-      this.requests.set(quotes.map((quote) => this.mapPendingQuote(quote)));
-      this.selectedQuoteRequest.set(null);
-      this.submittedQuoteIds.set([]);
+      const requests = this.normalizeWorkshopRequestsResponse(response);
+      this.requests.set(
+        requests
+          .filter((request) => this.requestInvitationShouldBeShown(request))
+          .map((request) => this.mapWorkshopRequest(request)),
+      );
     } catch (error) {
       this.requests.set([]);
-      this.requestsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar las solicitudes pendientes.'));
+      this.requestsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar las solicitudes del taller.'));
     } finally {
       this.isLoadingRequests.set(false);
     }
@@ -219,99 +227,6 @@ export class OperationsComponent implements OnInit, OnDestroy {
       this.assignmentsErrorMessage.set(this.getErrorMessage(error, 'No se pudieron cargar las asignaciones.'));
     } finally {
       this.isLoadingAssignments.set(false);
-    }
-  }
-
-  openQuoteForm(request: ServiceRequest): void {
-    if (!this.requestIsPending(request)) {
-      return;
-    }
-
-    this.quoteErrorMessage.set('');
-    this.quoteMessage.set('');
-    this.selectedQuoteRequest.set(request);
-  }
-
-  requestActionsAreDisabled(request: ServiceRequest): boolean {
-    const selectedRequestId = this.selectedQuoteRequest()?.id;
-    return (
-      this.submittedQuoteIds().includes(request.id) ||
-      selectedRequestId === request.id ||
-      this.rejectingQuoteId() === request.id ||
-      !this.requestIsPending(request)
-    );
-  }
-
-  requestIsBeingRejected(request: ServiceRequest): boolean {
-    return this.rejectingQuoteId() === request.id;
-  }
-
-  cancelQuote(): void {
-    this.quoteErrorMessage.set('');
-    this.selectedQuoteRequest.set(null);
-  }
-
-  async submitRequestQuote(amount: number): Promise<void> {
-    const request = this.selectedQuoteRequest();
-
-    if (!request) {
-      return;
-    }
-
-    if (!this.requestIsPending(request)) {
-      this.quoteErrorMessage.set('La cotizacion ya fue enviada y no se puede modificar.');
-      this.selectedQuoteRequest.set(null);
-      return;
-    }
-
-    this.quoteErrorMessage.set('');
-    this.quoteMessage.set('');
-    this.isSendingQuote.set(true);
-
-    try {
-      const response = await firstValueFrom(
-        this.quoteService
-          .updateQuoteAmount(request.solicitudId, request.id, request.vehiculoId, amount)
-          .pipe(timeout(10000)),
-      );
-
-      this.selectedQuoteRequest.set(null);
-      this.submittedQuoteIds.update((quoteIds) =>
-        quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
-      );
-
-      this.quoteMessage.set(
-        response.websocket_enviado
-          ? 'Cotizacion enviada correctamente.'
-          : 'Cotizacion actualizada. El cliente no estaba conectado al WebSocket.',
-      );
-    } catch (error) {
-      this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo enviar la cotizacion.'));
-    } finally {
-      this.isSendingQuote.set(false);
-    }
-  }
-
-  async rejectRequest(request: ServiceRequest): Promise<void> {
-    if (!this.requestIsPending(request)) {
-      return;
-    }
-
-    this.quoteErrorMessage.set('');
-    this.quoteMessage.set('');
-    this.rejectingQuoteId.set(request.id);
-
-    try {
-      await firstValueFrom(this.quoteService.rejectQuote(request.solicitudId, request.id).pipe(timeout(10000)));
-      this.submittedQuoteIds.update((quoteIds) =>
-        quoteIds.includes(request.id) ? quoteIds : [...quoteIds, request.id],
-      );
-      this.quoteMessage.set('Cotizacion rechazada correctamente.');
-      await this.loadPendingRequests();
-    } catch (error) {
-      this.quoteErrorMessage.set(this.getErrorMessage(error, 'No se pudo rechazar la cotizacion.'));
-    } finally {
-      this.rejectingQuoteId.set(null);
     }
   }
 
@@ -442,28 +357,35 @@ export class OperationsComponent implements OnInit, OnDestroy {
     this.activeTab.set('services');
   }
 
-  private mapPendingQuote(quote: PendingQuoteResponse): ServiceRequest {
-    const request = quote.solicitud;
-
+  private mapWorkshopRequest(request: WorkshopRequestResponse): ServiceRequest {
     return {
-      id: quote.id_cotizacion,
-      solicitudId: quote.id_solicitud,
-      tallerId: quote.id_taller,
+      id: request.id_solicitud,
+      solicitudId: request.id_solicitud,
       vehiculoId: request.id_vehiculo,
       descripcion: request.descripcion,
+      latitud: request.latitud,
+      longitud: request.longitud,
       prioridad: this.formatPriority(request.prioridad),
       observaciones: request.observaciones?.trim() || 'Sin observaciones',
-      estado: this.formatQuoteStatus(quote.estado),
-      fecha: this.formatDate(request.fecha),
-      direccion: request.direccion,
+      estado: this.formatStatus(request.estado),
+      fecha: this.formatDateTime(request.fecha),
+      direccion: request.direccion?.trim() || 'Sin direccion',
+      audioUrl: this.buildMediaUrl(request.audio),
+      imageUrls: this.normalizeMediaPaths(request.imagenes)
+        .map((image) => this.buildMediaUrl(image))
+        .filter((imageUrl): imageUrl is string => Boolean(imageUrl)),
+      rondaActual: request.ronda_actual,
+      distancia: this.formatDistance(request.distancia_desde_taller),
     };
   }
 
-  private requestIsPending(request: ServiceRequest): boolean {
-    return this.normalizeStatus(request.estado) === 'pendiente';
+  private requestInvitationShouldBeShown(request: WorkshopRequestResponse): boolean {
+    const invitationStatus = this.normalizeStatus(request.invitacion?.estado);
+
+    return invitationStatus === 'aceptada' || invitationStatus === 'enviada' || invitationStatus === 'enviado';
   }
 
-  private formatQuoteStatus(status: string): string {
+  private formatStatus(status: string): string {
     const normalizedStatus = this.normalizeStatus(status);
 
     if (!normalizedStatus) {
@@ -607,9 +529,9 @@ export class OperationsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private normalizePendingQuotesResponse(
-    response: PendingQuoteResponse[] | { value?: PendingQuoteResponse[] },
-  ): PendingQuoteResponse[] {
+  private normalizeWorkshopRequestsResponse(
+    response: WorkshopRequestResponse[] | { value?: WorkshopRequestResponse[] },
+  ): WorkshopRequestResponse[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -678,6 +600,16 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
   private setupProviderMessageListener(): void {
     this.wsService.onProviderMessage((message: WebSocketMessage) => {
+      if (this.normalizeMessageType(message.tipo) === 'nueva solicitud') {
+        this.notificationService.info('Tienes una nueva solicitud');
+
+        if (this.activeTab() === 'requests') {
+          void this.loadPendingRequests();
+        }
+
+        return;
+      }
+
       if (message.tipo === 'conexion_proveedor_ok') {
         console.info('WebSocket proveedor conectado', message.data);
         this.websocketErrorMessage.set('');
@@ -745,6 +677,10 @@ export class OperationsComponent implements OnInit, OnDestroy {
     return typeof value === 'string' && value.trim() ? value.trim() : fallback;
   }
 
+  private normalizeMessageType(type: string | null | undefined): string {
+    return type?.trim().toLowerCase() ?? '';
+  }
+
   private sendProviderSocketMessage(message: WebSocketMessage): boolean {
     return this.wsService.sendProviderMessage(message);
   }
@@ -759,6 +695,40 @@ export class OperationsComponent implements OnInit, OnDestroy {
     }
 
     return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
+  }
+
+  private formatDistance(distance: number | null): string {
+    if (distance === null || Number.isNaN(Number(distance))) {
+      return 'Sin distancia';
+    }
+
+    return `${Number(distance).toFixed(2)} km`;
+  }
+
+  private normalizeMediaPaths(paths: string[] | string | null | undefined): string[] {
+    if (Array.isArray(paths)) {
+      return paths;
+    }
+
+    if (typeof paths === 'string' && paths.trim()) {
+      return [paths];
+    }
+
+    return [];
+  }
+
+  private buildMediaUrl(path: string | null | undefined): string | null {
+    if (!path?.trim()) {
+      return null;
+    }
+
+    const trimmedPath = path.trim();
+
+    if (/^https?:\/\//i.test(trimmedPath)) {
+      return trimmedPath;
+    }
+
+    return `${this.workshopService.getBaseUrl()}${trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`}`;
   }
 
   private formatDate(date: string): string {
