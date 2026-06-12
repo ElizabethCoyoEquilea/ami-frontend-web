@@ -1,9 +1,11 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import * as L from 'leaflet';
 import { firstValueFrom, timeout } from 'rxjs';
 import {
   WorkshopAssignmentResponse,
   WorkshopProvider,
+  WorkshopRequestAssignmentResponse,
   WorkshopRequestResponse,
   WorkshopService,
 } from '../../../../../core/services/workshop.service';
@@ -25,6 +27,7 @@ type OperationsTab = 'requests' | 'assignments' | 'services' | 'serviceDetail' |
 interface ServiceRequest {
   id: number;
   solicitudId: number;
+  asignacionId: number | null;
   vehiculoId: number;
   descripcion: string;
   latitud: number | null;
@@ -38,6 +41,7 @@ interface ServiceRequest {
   imageUrls: string[];
   rondaActual: number;
   distancia: string;
+  assignmentStatus: string | null;
 }
 
 interface Assignment {
@@ -76,6 +80,14 @@ interface ServicePayment {
   estado: string;
 }
 
+interface TrackingLocation {
+  assignmentId: number;
+  requestId: number;
+  latitude: number;
+  longitude: number;
+  receivedAt: number;
+}
+
 @Component({
   selector: 'app-operations',
   imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent],
@@ -87,33 +99,55 @@ export class OperationsComponent implements OnInit, OnDestroy {
   private readonly operationService = inject(WorkshopOperationService);
   private readonly notificationService = inject(NotificationService);
   private readonly wsService = inject(WorkshopWebSocketService);
+  private readonly ngZone = inject(NgZone);
   private readonly route = inject(ActivatedRoute);
   private readonly workshopId = this.getWorkshopIdFromRoute();
+  private removeProviderMessageListener: (() => void) | null = null;
+  private removeClientMessageListener: (() => void) | null = null;
+  private readonly requestLocationIcon = L.divIcon({
+    className: 'tracking-request-marker',
+    html: '<span></span>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+  private readonly providerLocationIcon = L.divIcon({
+    className: 'tracking-provider-marker',
+    html: '<span></span>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
 
-  activeTab = signal<OperationsTab>('requests');
-  selectedRequestDetail = signal<ServiceRequest | null>(null);
-  selectedStaffAssignment = signal<Assignment | null>(null);
-  selectedCompletedService = signal<CompletedService | null>(null);
-  isLoadingRequests = signal(false);
-  isLoadingAssignments = signal(false);
-  isLoadingProviders = signal(false);
-  isLoadingServices = signal(false);
-  isLoadingServiceDetails = signal(false);
-  isLoadingPayment = signal(false);
-  requestsErrorMessage = signal('');
-  assignmentsErrorMessage = signal('');
-  providersErrorMessage = signal('');
-  websocketErrorMessage = signal('');
-  servicesErrorMessage = signal('');
-  serviceDetailsErrorMessage = signal('');
-  paymentErrorMessage = signal('');
+  @ViewChild('trackingMap') private trackingMapElement?: ElementRef<HTMLElement>;
 
-  requests = signal<ServiceRequest[]>([]);
-  assignments = signal<Assignment[]>([]);
-  availableStaff = signal<AvailableStaff[]>([]);
-  completedServices = signal<CompletedService[]>([]);
-  selectedServiceDetails = signal<CompletedServiceDetail[]>([]);
-  selectedPayment = signal<ServicePayment | null>(null);
+  private trackingMap?: L.Map;
+  private requestTrackingMarker?: L.Marker;
+  private providerTrackingMarker?: L.Marker;
+
+  public activeTab = signal<OperationsTab>('requests');
+  public selectedRequestDetail = signal<ServiceRequest | null>(null);
+  public selectedTrackingRequest = signal<ServiceRequest | null>(null);
+  public selectedStaffAssignment = signal<Assignment | null>(null);
+  public selectedCompletedService = signal<CompletedService | null>(null);
+  public isLoadingRequests = signal(false);
+  public isLoadingAssignments = signal(false);
+  public isLoadingProviders = signal(false);
+  public isLoadingServices = signal(false);
+  public isLoadingServiceDetails = signal(false);
+  public isLoadingPayment = signal(false);
+  public requestsErrorMessage = signal('');
+  public assignmentsErrorMessage = signal('');
+  public providersErrorMessage = signal('');
+  public websocketErrorMessage = signal('');
+  public servicesErrorMessage = signal('');
+  public serviceDetailsErrorMessage = signal('');
+  public paymentErrorMessage = signal('');
+
+  public requests = signal<ServiceRequest[]>([]);
+  public assignments = signal<Assignment[]>([]);
+  public availableStaff = signal<AvailableStaff[]>([]);
+  public completedServices = signal<CompletedService[]>([]);
+  public selectedServiceDetails = signal<CompletedServiceDetail[]>([]);
+  public selectedPayment = signal<ServicePayment | null>(null);
 
   ngOnInit(): void {
     void this.loadPendingRequests();
@@ -140,7 +174,9 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // El servicio de websocket se mantiene conectado mientras esté en la sección
+    this.removeProviderMessageListener?.();
+    this.removeClientMessageListener?.();
+    this.destroyTrackingMap();
   }
 
   setActiveTab(tab: OperationsTab): void {
@@ -159,16 +195,38 @@ export class OperationsComponent implements OnInit, OnDestroy {
     }
   }
 
-  visibleRequests(): ServiceRequest[] {
+  public visibleRequests(): ServiceRequest[] {
     return this.requests();
   }
 
-  openRequestDetail(request: ServiceRequest): void {
+  public openRequestDetail(request: ServiceRequest): void {
     this.selectedRequestDetail.set(request);
   }
 
-  closeRequestDetail(): void {
+  public closeRequestDetail(): void {
     this.selectedRequestDetail.set(null);
+  }
+
+  public canViewTracking(request: ServiceRequest): boolean {
+    return (
+      this.normalizeStatus(request.estado) === 'asignada' &&
+      this.normalizeStatus(request.assignmentStatus) === 'en camino'
+    );
+  }
+
+  public viewTracking(request: ServiceRequest): void {
+    if (request.latitud === null || request.longitud === null) {
+      this.notificationService.warning('La solicitud no tiene ubicacion registrada.');
+      return;
+    }
+
+    this.selectedTrackingRequest.set(request);
+    setTimeout(() => this.initializeTrackingMap());
+  }
+
+  public closeTracking(): void {
+    this.selectedTrackingRequest.set(null);
+    this.destroyTrackingMap();
   }
 
   async loadPendingRequests(): Promise<void> {
@@ -212,13 +270,28 @@ export class OperationsComponent implements OnInit, OnDestroy {
     this.isLoadingAssignments.set(true);
 
     try {
-      const response = await firstValueFrom(
-        this.workshopService.getWorkshopAssignments(this.workshopId).pipe(timeout(10000)),
+      const [assignmentsResponse, requestsResponse] = await Promise.allSettled([
+        firstValueFrom(this.workshopService.getWorkshopAssignments(this.workshopId).pipe(timeout(10000))),
+        firstValueFrom(this.workshopService.getWorkshopRequests(this.workshopId).pipe(timeout(10000))),
+      ]);
+
+      if (assignmentsResponse.status === 'rejected' && requestsResponse.status === 'rejected') {
+        throw assignmentsResponse.reason;
+      }
+
+      const responseAssignments =
+        assignmentsResponse.status === 'fulfilled' ? this.normalizeAssignmentsResponse(assignmentsResponse.value) : [];
+      const embeddedAssignments = (requestsResponse.status === 'fulfilled'
+        ? this.normalizeWorkshopRequestsResponse(requestsResponse.value)
+        : [])
+        .map((request) => request.asignacion)
+        .filter((assignment): assignment is WorkshopRequestAssignmentResponse => Boolean(assignment));
+      const assignments = this.mergeAssignments(
+        responseAssignments.map((assignment) => this.mapAssignment(assignment)),
+        embeddedAssignments.map((assignment) => this.mapRequestAssignment(assignment)),
       );
-      const assignments = this.normalizeAssignmentsResponse(response);
       this.assignments.set(
         assignments
-          .map((assignment) => this.mapAssignment(assignment))
           .filter((assignment) => this.assignmentShouldBeShown(assignment.estado)),
       );
       this.selectedStaffAssignment.set(null);
@@ -361,6 +434,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
     return {
       id: request.id_solicitud,
       solicitudId: request.id_solicitud,
+      asignacionId: request.asignacion?.id_asignacion ?? null,
       vehiculoId: request.id_vehiculo,
       descripcion: request.descripcion,
       latitud: request.latitud,
@@ -376,6 +450,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
         .filter((imageUrl): imageUrl is string => Boolean(imageUrl)),
       rondaActual: request.ronda_actual,
       distancia: this.formatDistance(request.distancia_desde_taller),
+      assignmentStatus: request.asignacion?.estado ?? null,
     };
   }
 
@@ -396,7 +471,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   private normalizeStatus(status: string | null | undefined): string {
-    return status?.trim().toLowerCase() ?? '';
+    return status?.trim().toLowerCase().replaceAll('_', ' ') ?? '';
   }
 
   private assignmentShouldBeShown(status: string): boolean {
@@ -450,6 +525,32 @@ export class OperationsComponent implements OnInit, OnDestroy {
       fecha: this.formatDate(assignment.fecha),
       estado: assignment.estado,
     };
+  }
+
+  private mapRequestAssignment(assignment: WorkshopRequestAssignmentResponse): Assignment {
+    return {
+      id: assignment.id_asignacion,
+      codigo: `AS${assignment.id_asignacion}`,
+      cotizacionId: null,
+      solicitudId: assignment.id_solicitud,
+      tallerId: assignment.id_taller,
+      catalogoServicioId: null,
+      fecha: this.formatDateTime(assignment.fecha_inicio),
+      estado: assignment.estado,
+    };
+  }
+
+  private mergeAssignments(assignments: Assignment[], embeddedAssignments: Assignment[]): Assignment[] {
+    const assignmentsById = new Map<number, Assignment>();
+
+    [...assignments, ...embeddedAssignments].forEach((assignment) => {
+      assignmentsById.set(assignment.id, {
+        ...assignmentsById.get(assignment.id),
+        ...assignment,
+      });
+    });
+
+    return [...assignmentsById.values()];
   }
 
   private mapCompletedService(service: WorkshopCompletedServiceResponse): CompletedService {
@@ -599,7 +700,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   private setupProviderMessageListener(): void {
-    this.wsService.onProviderMessage((message: WebSocketMessage) => {
+    this.removeProviderMessageListener = this.wsService.onProviderMessage((message: WebSocketMessage) => {
       if (this.isNewRequestMessage(message)) {
         this.handleNewRequestMessage();
         return;
@@ -607,6 +708,16 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
       if (this.isExpiredInvitationMessage(message)) {
         this.handleExpiredInvitationMessage();
+        return;
+      }
+
+      if (this.isTrackingStartedMessage(message)) {
+        this.handleTrackingStartedMessage();
+        return;
+      }
+
+      if (this.isProviderRouteMessage(message)) {
+        this.handleProviderRouteMessage(message);
         return;
       }
 
@@ -636,7 +747,7 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   private setupClientMessageListener(): void {
-    this.wsService.onClientMessage((message: WebSocketMessage) => {
+    this.removeClientMessageListener = this.wsService.onClientMessage((message: WebSocketMessage) => {
       if (this.isNewRequestMessage(message)) {
         this.handleNewRequestMessage();
         return;
@@ -653,16 +764,24 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   private isNewRequestMessage(message: WebSocketMessage): boolean {
-    return this.normalizeMessageType(message.tipo) === 'nueva solicitud';
+    const messageType = this.normalizeMessageType(message.tipo);
+
+    return messageType === 'solicitud nueva' || messageType === 'nueva solicitud';
   }
 
   private isExpiredInvitationMessage(message: WebSocketMessage): boolean {
     return this.normalizeMessageType(message.tipo) === 'invitacion_expirada';
   }
 
-  private handleNewRequestMessage(): void {
-    this.notificationService.info('Tienes una nueva solicitud');
+  private isTrackingStartedMessage(message: WebSocketMessage): boolean {
+    return this.normalizeMessageType(message.tipo) === 'seguimiento iniciado';
+  }
 
+  private isProviderRouteMessage(message: WebSocketMessage): boolean {
+    return this.normalizeMessageType(message.tipo) === 'proveedor recorrido';
+  }
+
+  private handleNewRequestMessage(): void {
     if (this.activeTab() === 'requests') {
       void this.loadPendingRequests();
     }
@@ -671,6 +790,50 @@ export class OperationsComponent implements OnInit, OnDestroy {
   private handleExpiredInvitationMessage(): void {
     if (this.activeTab() === 'requests') {
       void this.loadPendingRequests();
+    }
+  }
+
+  private handleTrackingStartedMessage(): void {
+    if (this.activeTab() === 'requests') {
+      void this.loadPendingRequests();
+    }
+  }
+
+  private handleProviderRouteMessage(message: WebSocketMessage): void {
+    const assignmentId = Number(message.data['id_asignacion']);
+    const requestId = Number(message.data['id_solicitud']);
+    const latitude = Number(message.data['latitud']);
+    const longitude = Number(message.data['longitud']);
+
+    if (
+      !Number.isInteger(assignmentId) ||
+      assignmentId <= 0 ||
+      !Number.isInteger(requestId) ||
+      requestId <= 0 ||
+      Number.isNaN(latitude) ||
+      Number.isNaN(longitude)
+    ) {
+      return;
+    }
+
+    const location = {
+      assignmentId,
+      requestId,
+      latitude,
+      longitude,
+      receivedAt: Date.now(),
+    };
+
+    console.info('proveedor_recorrido recibido', {
+      id_asignacion: assignmentId,
+      id_solicitud: requestId,
+      latitud: latitude,
+      longitud: longitude,
+    });
+
+    const selectedRequest = this.selectedTrackingRequest();
+    if (selectedRequest?.asignacionId === assignmentId && selectedRequest.solicitudId === requestId) {
+      this.ngZone.run(() => this.updateProviderTrackingMarker(location));
     }
   }
 
@@ -705,7 +868,76 @@ export class OperationsComponent implements OnInit, OnDestroy {
   }
 
   private normalizeMessageType(type: string | null | undefined): string {
-    return type?.trim().toLowerCase() ?? '';
+    return type?.trim().toLowerCase().replaceAll('_', ' ') ?? '';
+  }
+
+  private initializeTrackingMap(): void {
+    const request = this.selectedTrackingRequest();
+    const mapElement = this.trackingMapElement?.nativeElement;
+
+    if (!request || !mapElement || request.latitud === null || request.longitud === null) {
+      return;
+    }
+
+    this.destroyTrackingMap();
+
+    const requestPosition: L.LatLngExpression = [request.latitud, request.longitud];
+
+    this.trackingMap = L.map(mapElement, {
+      center: requestPosition,
+      zoom: 14,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.trackingMap);
+
+    this.requestTrackingMarker = L.marker(requestPosition, { icon: this.requestLocationIcon })
+      .addTo(this.trackingMap)
+      .bindPopup('Ubicacion de la solicitud');
+
+    setTimeout(() => {
+      this.trackingMap?.invalidateSize();
+      this.trackingMap?.setView(requestPosition, 16);
+    });
+  }
+
+  private updateProviderTrackingMarker(location: TrackingLocation): void {
+    if (!this.trackingMap) {
+      return;
+    }
+
+    const providerPosition: L.LatLngExpression = [location.latitude, location.longitude];
+
+    if (this.providerTrackingMarker) {
+      this.providerTrackingMarker.setLatLng(providerPosition);
+      this.providerTrackingMarker.setPopupContent(`Proveedor: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
+    } else {
+      this.providerTrackingMarker = L.marker(providerPosition, { icon: this.providerLocationIcon })
+        .addTo(this.trackingMap)
+        .bindPopup(`Proveedor: ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
+    }
+
+    this.fitTrackingBounds(providerPosition);
+  }
+
+  private fitTrackingBounds(providerPosition: L.LatLngExpression): void {
+    const request = this.selectedTrackingRequest();
+
+    if (request && request.latitud !== null && request.longitud !== null) {
+      const bounds = L.latLngBounds([[request.latitud, request.longitud], providerPosition]);
+      this.trackingMap?.fitBounds(bounds, { padding: [120, 120], maxZoom: 16 });
+      return;
+    }
+
+    this.trackingMap?.setView(providerPosition, 16);
+  }
+
+  private destroyTrackingMap(): void {
+    this.trackingMap?.remove();
+    this.trackingMap = undefined;
+    this.requestTrackingMarker = undefined;
+    this.providerTrackingMarker = undefined;
   }
 
   private sendProviderSocketMessage(message: WebSocketMessage): boolean {

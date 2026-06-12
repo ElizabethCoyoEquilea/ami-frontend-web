@@ -54,6 +54,20 @@ export interface FinancialReportResponse {
   };
 }
 
+export interface DynamicReportRequest {
+  prompt: string;
+  id_taller: number;
+}
+
+export interface DynamicReportResponse {
+  title: string;
+  report_type: string;
+  filters: Record<string, unknown>;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  row_count: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -88,5 +102,9 @@ export class ReportService {
     return this.apiService.get<FinancialReportResponse>(
       `/talleres/${workshopId}/reportes/financiero?${params.toString()}`,
     );
+  }
+
+  generateDynamicReport(payload: DynamicReportRequest): Observable<DynamicReportResponse> {
+    return this.apiService.post<DynamicReportResponse, DynamicReportRequest>('/reportes/ia', payload);
   }
 }
