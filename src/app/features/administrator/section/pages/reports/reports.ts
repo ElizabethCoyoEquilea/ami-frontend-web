@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, timeout } from 'rxjs';
@@ -17,6 +17,7 @@ export class ReportsComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly reportService = inject(ReportService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly workshopId = this.getWorkshopIdFromRoute();
 
   isLoadingDynamicReport = false;
@@ -77,19 +78,22 @@ export class ReportsComponent {
     }
 
     this.isLoadingDynamicReport = true;
+    this.changeDetectorRef.detectChanges();
 
     try {
       const { prompt } = this.dynamicReportForm.getRawValue();
-      this.dynamicReport = await firstValueFrom(
+      const response = await firstValueFrom(
         this.reportService.generateDynamicReport({
           prompt: prompt.trim(),
           id_taller: this.workshopId,
         }).pipe(timeout(20000)),
       );
+      this.dynamicReport = this.normalizeDynamicReportResponse(response);
     } catch (error) {
       this.dynamicReportErrorMessage = this.getErrorMessage(error, 'No se pudo generar el reporte dinamico.');
     } finally {
       this.isLoadingDynamicReport = false;
+      this.changeDetectorRef.detectChanges();
     }
   }
 
@@ -147,6 +151,59 @@ export class ReportsComponent {
     }
 
     return 0;
+  }
+
+  private normalizeDynamicReportResponse(response: unknown): DynamicReportResponse {
+    const report = this.unwrapDynamicReportResponse(response);
+    const rows = Array.isArray(report['rows']) ? report['rows'] : [];
+    const columns = Array.isArray(report['columns'])
+      ? report['columns'].map((column) => String(column))
+      : this.inferColumnsFromRows(rows);
+
+    return {
+      title: this.getStringValue(report['title'], 'Reporte dinamico'),
+      report_type: this.getStringValue(report['report_type'], 'dynamic'),
+      filters: this.isRecord(report['filters']) ? report['filters'] : {},
+      columns,
+      rows: rows.filter((row): row is Record<string, unknown> => this.isRecord(row)),
+      row_count: this.getNumberValue(report['row_count'], rows.length),
+    };
+  }
+
+  private unwrapDynamicReportResponse(response: unknown): Record<string, unknown> {
+    if (!this.isRecord(response)) {
+      return {};
+    }
+
+    const possibleKeys = ['data', 'value', 'report', 'reporte', 'result'];
+
+    for (const key of possibleKeys) {
+      if (this.isRecord(response[key])) {
+        return response[key];
+      }
+    }
+
+    return response;
+  }
+
+  private inferColumnsFromRows(rows: unknown[]): string[] {
+    const firstRow = rows.find((row): row is Record<string, unknown> => this.isRecord(row));
+
+    return firstRow ? Object.keys(firstRow) : [];
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private getStringValue(value: unknown, fallback: string): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+  }
+
+  private getNumberValue(value: unknown, fallback: number): number {
+    const numericValue = Number(value);
+
+    return Number.isNaN(numericValue) ? fallback : numericValue;
   }
 
   private columnShouldBeCurrency(column: string): boolean {
