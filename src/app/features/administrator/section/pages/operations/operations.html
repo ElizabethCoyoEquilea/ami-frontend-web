@@ -117,6 +117,9 @@
                   <span>{{ request.direccion }}</span>
                   <span class="row-actions request-actions">
                     <button type="button" (click)="openRequestDetail(request)">Ver Detalles</button>
+                    @if (canViewTracking(request)) {
+                      <button type="button" (click)="viewTracking(request)">Ver seguimiento</button>
+                    }
                   </span>
                 </div>
               }
@@ -393,6 +396,33 @@
             <strong>Sin imagenes</strong>
           }
         </div>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedTrackingRequest(); as request) {
+  <div class="modal-backdrop" role="presentation" (click)="closeTracking()">
+    <section
+      class="request-detail-modal tracking-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tracking-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Solicitud #{{ request.solicitudId }}</p>
+          <h2 id="tracking-title">Seguimiento del proveedor</h2>
+        </div>
+        <button class="link-button" type="button" (click)="closeTracking()">Cerrar</button>
+      </div>
+
+      <div class="tracking-map" #trackingMap></div>
+
+      <div class="tracking-legend">
+        <span><i class="request-dot"></i> Solicitud</span>
+        <span><i class="provider-dot"></i> Proveedor</span>
       </div>
     </section>
   </div>

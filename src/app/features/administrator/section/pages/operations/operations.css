@@ -443,6 +443,53 @@ app-navbar {
   width: 100%;
 }
 
+.tracking-modal {
+  max-width: 54rem;
+}
+
+.tracking-map {
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  height: min(32rem, 62vh);
+  overflow: hidden;
+}
+
+.tracking-legend {
+  display: flex;
+  gap: 1rem;
+}
+
+.tracking-legend span {
+  align-items: center;
+  color: var(--color-texto-secundario);
+  display: flex;
+  font-weight: 800;
+  gap: 0.35rem;
+}
+
+.request-dot,
+.provider-dot,
+:host ::ng-deep .tracking-request-marker span,
+:host ::ng-deep .tracking-provider-marker span {
+  border: 3px solid var(--color-blanco);
+  border-radius: 999px;
+  box-shadow: 0 0.25rem 0.75rem rgba(11, 31, 77, 0.28);
+  display: block;
+  height: 1rem;
+  width: 1rem;
+}
+
+.request-dot,
+:host ::ng-deep .tracking-request-marker span {
+  background: var(--color-error);
+}
+
+.provider-dot,
+:host ::ng-deep .tracking-provider-marker span {
+  background: #0ea5e9;
+  outline: 3px solid rgba(14, 165, 233, 0.28);
+}
+
 @media (max-width: 768px) {
   .section-layout {
     flex-direction: column;

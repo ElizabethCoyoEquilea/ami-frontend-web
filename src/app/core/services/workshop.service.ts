@@ -128,6 +128,17 @@ export interface WorkshopAssignmentResponse {
   solicitud: WorkshopAssignmentRequest;
 }
 
+export interface WorkshopRequestAssignmentResponse {
+  id_asignacion: number;
+  id_solicitud: number;
+  id_taller: number;
+  id_proveedor: number | null;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  tiempo_llegada: number | null;
+  estado: string;
+}
+
 export interface WorkshopRequestResponse {
   id_solicitud: number;
   id_vehiculo: number;
@@ -145,6 +156,7 @@ export interface WorkshopRequestResponse {
   recomendacion: string | null;
   distancia_desde_taller: number | null;
   invitacion: WorkshopRequestInvitationResponse | null;
+  asignacion: WorkshopRequestAssignmentResponse | null;
 }
 
 export interface WorkshopRequestInvitationResponse {
