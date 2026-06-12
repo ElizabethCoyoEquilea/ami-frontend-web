@@ -22,25 +22,6 @@
       </section>
 
       <div class="dashboard-grid">
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Operaciones</p>
-              <h2>Estado actual</h2>
-            </div>
-            <span class="live-pill">Actualizado</span>
-          </div>
-
-          <div class="operations-grid">
-            @for (operation of operationSummaries(); track operation.label) {
-              <article class="operation-card">
-                <span>{{ operation.label }}</span>
-                <strong>{{ operation.value }}</strong>
-                <p>{{ operation.status }}</p>
-              </article>
-            }
-          </div>
-        </section>
 
         <section class="panel chart-panel">
           <div class="panel-header">

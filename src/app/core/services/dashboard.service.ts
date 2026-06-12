@@ -11,9 +11,13 @@ export interface WorkshopDashboardData {
   ingresos_hoy: number;
   ingresos_mes_anterior_mismo_dia: number;
   variacion_ingresos_vs_mes_anterior: number | null;
-  servicios_finalizados_hoy: number;
   servicios_finalizados_semana: number;
   calificacion_promedio: number;
+  promedio_asignacion: number;
+  solicitudes_pendientes: number;
+  servicios_finalizados: number;
+  casos_no_atendidos: number;
+  promedio_llegada: number;
   total_resenas: number;
   operaciones?: {
     solicitudes_pendientes_cotizar: number;
