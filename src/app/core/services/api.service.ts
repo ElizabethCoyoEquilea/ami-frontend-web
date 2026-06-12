@@ -7,8 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://127.0.0.1:8000';
-  // private readonly baseUrl = 'https://ami-backend.duckdns.org';
+  // private readonly baseUrl = 'http://127.0.0.1:8000';
+  private readonly baseUrl = 'https://ami-backend.duckdns.org';
 
   getBaseUrl(): string {
     return this.baseUrl;
