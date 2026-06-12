@@ -23,11 +23,6 @@ interface OperationSummary {
   status: string;
 }
 
-interface MonthlyService {
-  month: string;
-  total: number;
-}
-
 interface ZoneIncident {
   zone: string;
   total: number;
@@ -74,17 +69,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Calificacion promedio',
-        value: `${this.formatInteger(data?.calificacion_promedio ?? 4.8)}/5`,
+        value: `${this.formatDecimal(data?.calificacion_promedio ?? 4.8)}/5`,
         detail: '',
         tone: 'orange',
       },
       {
         label: 'Tiempo promedio de asignacion',
-        value: `${this.formatDecimal(data?.promedio_asignacion ?? 10.5)} min`,
+        value: `${this.formatDecimal(data?.tiempo_promedio_asignacion ?? 10.5)} min`,
         detail: '',
         tone: 'red',
       },
-            {
+      {
         label: 'Solicitudes pendientes',
         value: this.formatInteger(data?.solicitudes_pendientes ?? 5),
         detail: '',
@@ -92,91 +87,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Servicios finalizados hoy',
-        value: this.formatCurrency(data?.servicios_finalizados ?? 2),
+        value: this.formatInteger(data?.servicios_finalizados_hoy ?? 2),
         detail: '',
         tone: 'green',
       },
       {
         label: 'Casos no atendidos hoy',
-        value: this.formatInteger(data?.casos_no_atendidos ?? 126),
+        value: this.formatInteger(data?.casos_no_atendidos_hoy ?? 126),
         detail: '',
         tone: 'orange',
       },
       {
         label: 'Tiempo promedio de llegada',
-        value: `${this.formatDecimal(data?.promedio_llegada ?? 4.8)} min`,
+        value: `${this.formatDecimal(data?.tiempo_promedio_llegada ?? 4.8)} min`,
         detail: '',
         tone: 'red',
       },
     ];
   });
 
-  readonly operationSummaries = computed<OperationSummary[]>(() => {
-    const operations = this.dashboardData()?.operaciones;
+  readonly topZones = computed<ZoneIncident[]>(() =>
+    (this.dashboardData()?.zonas_mayor_demanda ?? []).map((zone) => ({
+      zone: zone.nombre,
+      total: zone.cantidad,
+    })),
+  );
 
-    return [
-      {
-        label: 'Solicitudes',
-        value: operations?.solicitudes_pendientes_cotizar ?? 14,
-        status: 'Pendientes a cotizar',
-      },
-      {
-        label: 'Asignaciones',
-        value: operations?.asignaciones_pendientes_designar ?? 9,
-        status: 'Pendientes a designar',
-      },
-      {
-        label: 'Servicios',
-        value: operations?.servicios_en_curso ?? 21,
-        status: 'En curso',
-      },
-    ];
-  });
-
-  readonly monthlyServices = computed<MonthlyService[]>(() => {
-    const months = this.dashboardData()?.servicios_por_mes?.meses;
-
-    if (!months?.length) {
-      return [
-        { month: 'Ene', total: 38 },
-        { month: 'Feb', total: 46 },
-        { month: 'Mar', total: 52 },
-        { month: 'Abr', total: 61 },
-        { month: 'May', total: 58 },
-        { month: 'Jun', total: 74 },
-        { month: 'Jul', total: 69 },
-        { month: 'Ago', total: 83 },
-      ];
-    }
-
-    return months.map((month) => ({
-      month: month.etiqueta,
-      total: month.cantidad,
-    }));
-  });
-
-  readonly topZones = computed<ZoneIncident[]>(() => [
-    { zone: 'Zona sureste', total: 42 },
-    { zone: 'Zona este', total: 31 },
-    { zone: 'Zona norte', total: 18 },
-    { zone: 'Zona sur', total: 14 },
-    { zone: 'Centro', total: 9 },
-  ]);
-
-  readonly serviceRequests = computed<ServiceRequest[]>(() => [
-    { service: 'MECANICA_GENERAL', total: 10 },
-    { service: 'ELECTRICIDAD', total: 12 },
-    { service: 'NEUMATICOS', total: 8 },
-    { service: 'FRENOS', total: 4 },
-    { service: 'MOTOR', total: 15 },
-    { service: 'REFRIGERACION', total: 15 },
-    { service: 'SUSPENSION_DIRECCION', total: 5 },
-    { service: 'TRANSMISION', total: 5 },
-    { service: 'MANTENIMIENTO', total: 6 },
-    { service: 'AIRE_ACONDICIONADO', total: 0 },
-    { service: 'DIAGNOSTICO', total: 1 },
-    { service: 'REMOLQUE', total: 5 },
-  ]);
+  readonly serviceRequests = computed<ServiceRequest[]>(() =>
+    (this.dashboardData()?.solicitudes_por_tipo_servicio ?? []).map((service) => ({
+      service: service.nombre || service.codigo,
+      total: service.cantidad,
+    })),
+  );
 
   getMaxServiceRequests(): number {
     return Math.max(1, ...this.serviceRequests().map((item) => item.total));
@@ -185,11 +127,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getBarWidth(total: number, maxValue: number): string {
     return `${Math.max(6, (total / maxValue) * 100)}%`;
   }
-
-  readonly monthlyServicesTotal = computed(() => {
-    const total = this.dashboardData()?.servicios_por_mes?.total;
-    return total ?? this.monthlyServices().reduce((sum, service) => sum + service.total, 0);
-  });
 
   ngOnInit(): void {
     void this.loadCurrentUser();
@@ -203,7 +140,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getMaxServices(): number {
-    return Math.max(1, ...this.monthlyServices().map((service) => service.total));
+    return Math.max(1, ...this.topZones().map((zone) => zone.total));
   }
 
   getBarHeight(total: number): string {
