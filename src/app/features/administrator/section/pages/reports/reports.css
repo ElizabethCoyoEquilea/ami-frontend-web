@@ -238,13 +238,35 @@ app-navbar {
   justify-content: space-between;
 }
 
-.dynamic-report-heading strong {
+.dynamic-report-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.dynamic-report-actions strong {
   background: var(--color-input);
   border-radius: 999px;
   color: var(--color-titulo);
   font-size: 0.85rem;
   padding: 0.45rem 0.75rem;
   white-space: nowrap;
+}
+
+.dynamic-report-actions button {
+  background: var(--color-boton);
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--color-blanco);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 0.85rem;
+}
+
+.dynamic-report-actions button:hover {
+  background: var(--color-boton-hover);
 }
 
 .filters-summary {
@@ -423,5 +445,9 @@ app-navbar {
   .dynamic-report-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .dynamic-report-actions {
+    justify-content: flex-start;
   }
 }

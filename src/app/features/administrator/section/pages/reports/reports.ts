@@ -97,6 +97,29 @@ export class ReportsComponent {
     }
   }
 
+  exportDynamicPdf(): void {
+    if (!this.dynamicReport) {
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=960,height=720');
+
+    if (!printWindow) {
+      this.dynamicReportErrorMessage = 'No se pudo abrir la ventana de exportacion del reporte.';
+      this.changeDetectorRef.detectChanges();
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(this.buildPrintableDynamicReportHtml(this.dynamicReport));
+    printWindow.document.close();
+    printWindow.focus();
+
+    printWindow.setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  }
+
   filterEntries(filters: Record<string, unknown> | null | undefined): Array<{ key: string; label: string; value: unknown }> {
     if (!filters) {
       return [];
@@ -254,5 +277,128 @@ export class ReportsComponent {
     }
 
     return fallbackMessage;
+  }
+
+  private buildPrintableDynamicReportHtml(report: DynamicReportResponse): string {
+    const filterRows = this.filterEntries(report.filters)
+      .map((filter) => this.buildPrintableKeyValueRow(filter.label, this.formatCellValue(filter.key, filter.value)))
+      .join('');
+    const tableHeaders = report.columns
+      .map((column) => `<th>${this.escapeHtml(this.formatColumnName(column))}</th>`)
+      .join('');
+    const tableRows = report.rows
+      .map((row) => `
+        <tr>
+          ${report.columns
+            .map((column) => `<td>${this.escapeHtml(this.formatCellValue(column, row[column]))}</td>`)
+            .join('')}
+        </tr>
+      `)
+      .join('');
+
+    return `
+      <!doctype html>
+      <html lang="es">
+        <head>
+          <meta charset="utf-8">
+          <title>${this.escapeHtml(report.title)}</title>
+          <style>
+            @page { margin: 18mm; }
+            * { box-sizing: border-box; }
+            body {
+              color: #172554;
+              font-family: Arial, sans-serif;
+              margin: 0;
+            }
+            header {
+              border-bottom: 2px solid #dbeafe;
+              margin-bottom: 24px;
+              padding-bottom: 16px;
+            }
+            .eyebrow {
+              color: #2563eb;
+              font-size: 12px;
+              font-weight: 700;
+              margin: 0 0 6px;
+              text-transform: uppercase;
+            }
+            h1 { font-size: 28px; margin: 0 0 8px; }
+            h2 { font-size: 18px; margin: 0 0 12px; }
+            p { color: #475569; margin: 0; }
+            section { break-inside: avoid; margin-bottom: 22px; }
+            table { border-collapse: collapse; width: 100%; }
+            th {
+              background: #dbeafe;
+              border: 1px solid #bfdbfe;
+              color: #172554;
+              font-size: 12px;
+              padding: 10px 12px;
+              text-align: left;
+              text-transform: uppercase;
+            }
+            td {
+              border: 1px solid #dbeafe;
+              color: #0f172a;
+              padding: 10px 12px;
+              vertical-align: top;
+            }
+            .filters td:first-child {
+              color: #475569;
+              font-weight: 700;
+              width: 30%;
+            }
+          </style>
+        </head>
+        <body>
+          <header>
+            <p class="eyebrow">${this.escapeHtml(report.report_type)}</p>
+            <h1>${this.escapeHtml(report.title)}</h1>
+            <p>${this.escapeHtml(String(report.row_count))} filas generadas.</p>
+          </header>
+
+          <section>
+            <h2>Filtros aplicados</h2>
+            <table class="filters">
+              <tbody>
+                ${filterRows || this.buildPrintableKeyValueRow('Sin filtros', '-')}
+              </tbody>
+            </table>
+          </section>
+
+          <section>
+            <h2>Resultados</h2>
+            <table>
+              <thead>
+                <tr>${tableHeaders}</tr>
+              </thead>
+              <tbody>
+                ${tableRows || `<tr><td colspan="${Math.max(report.columns.length, 1)}">Sin resultados</td></tr>`}
+              </tbody>
+            </table>
+          </section>
+        </body>
+      </html>
+    `;
+  }
+
+  private buildPrintableKeyValueRow(label: string, value: string): string {
+    return `
+      <tr>
+        <td>${this.escapeHtml(label)}</td>
+        <td>${this.escapeHtml(value)}</td>
+      </tr>
+    `;
+  }
+
+  private escapeHtml(value: string): string {
+    const escapeMap: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+
+    return value.replace(/[&<>"']/g, (character) => escapeMap[character]);
   }
 }

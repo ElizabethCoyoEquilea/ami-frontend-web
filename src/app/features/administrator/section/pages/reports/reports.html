@@ -102,7 +102,10 @@
               <p class="eyebrow">{{ report.report_type }}</p>
               <h2>{{ report.title }}</h2>
             </div>
-            <strong>{{ report.row_count }} filas</strong>
+            <div class="dynamic-report-actions">
+              <strong>{{ report.row_count }} filas</strong>
+              <button type="button" (click)="exportDynamicPdf()">Exportar PDF</button>
+            </div>
           </div>
 
           <div class="filters-summary">
