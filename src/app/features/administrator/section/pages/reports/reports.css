@@ -109,6 +109,10 @@ app-navbar {
   align-self: end;
 }
 
+.prompt-field {
+  grid-area: prompt;
+}
+
 .date-field:first-of-type {
   grid-area: start;
 }
@@ -126,17 +130,25 @@ app-navbar {
   text-transform: uppercase;
 }
 
-.filter-panel input {
+.filter-panel input,
+.filter-panel textarea {
   background: var(--color-input);
   border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
   color: var(--color-texto);
+  font: inherit;
   outline: none;
   padding: 0.75rem 0.85rem;
   width: 100%;
 }
 
-.filter-panel input:focus {
+.filter-panel textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.filter-panel input:focus,
+.filter-panel textarea:focus {
   border-color: var(--color-titulo);
   box-shadow: 0 0 0 0.2rem rgba(11, 31, 77, 0.1);
 }
@@ -160,6 +172,22 @@ app-navbar {
   background: var(--color-boton-hover);
 }
 
+.filter-panel button:disabled {
+  background: var(--color-deshabilitado);
+  cursor: not-allowed;
+}
+
+.dynamic-filter-panel {
+  grid-template-areas:
+    'copy copy'
+    'prompt actions';
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.dynamic-actions {
+  min-width: 10rem;
+}
+
 .export-message {
   background: #ecfdf3;
   border: 1px solid #bbf7d0;
@@ -177,6 +205,138 @@ app-navbar {
 
 .report-panel {
   padding: 1.25rem;
+}
+
+.state-panel,
+.empty-state {
+  color: var(--color-texto-secundario);
+}
+
+.state-panel p,
+.empty-state p {
+  margin: 0.45rem 0 0;
+}
+
+.error-state {
+  border-color: var(--color-error-borde);
+  color: var(--color-error);
+}
+
+.error-state h2 {
+  color: var(--color-error);
+}
+
+.dynamic-result-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.dynamic-report-heading {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.dynamic-report-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.dynamic-report-actions strong {
+  background: var(--color-input);
+  border-radius: 999px;
+  color: var(--color-titulo);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  white-space: nowrap;
+}
+
+.dynamic-report-actions button {
+  background: var(--color-boton);
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--color-blanco);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.65rem 0.85rem;
+}
+
+.dynamic-report-actions button:hover {
+  background: var(--color-boton-hover);
+}
+
+.filters-summary {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  padding: 0.85rem;
+}
+
+.filter-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-chip {
+  background: var(--color-blanco);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.6rem;
+}
+
+.filter-chip strong {
+  color: var(--color-texto-secundario);
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.dynamic-table-wrap {
+  overflow-x: auto;
+}
+
+.dynamic-table {
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  min-width: 100%;
+}
+
+.dynamic-table th {
+  color: var(--color-texto-secundario);
+  font-size: 0.8rem;
+  padding: 0 0.85rem;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dynamic-table td {
+  background: var(--color-input);
+  border-bottom: 1px solid var(--color-borde);
+  border-top: 1px solid var(--color-borde);
+  color: var(--color-texto);
+  padding: 0.85rem;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.dynamic-table td:first-child {
+  border-left: 1px solid var(--color-borde);
+  border-radius: 0.5rem 0 0 0.5rem;
+  color: var(--color-titulo);
+  font-weight: 800;
+}
+
+.dynamic-table td:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
+  border-right: 1px solid var(--color-borde);
 }
 
 .metric-grid {
@@ -250,6 +410,7 @@ app-navbar {
   }
 
   .filter-panel,
+  .dynamic-filter-panel,
   .metric-grid,
   .providers-header,
   .provider-row {
@@ -265,6 +426,13 @@ app-navbar {
     grid-template-columns: 1fr;
   }
 
+  .dynamic-filter-panel {
+    grid-template-areas:
+      'copy'
+      'prompt'
+      'actions';
+  }
+
   .providers-header {
     display: none;
   }
@@ -272,5 +440,14 @@ app-navbar {
   .filter-copy {
     align-items: start;
     display: grid;
+  }
+
+  .dynamic-report-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .dynamic-report-actions {
+    justify-content: flex-start;
   }
 }

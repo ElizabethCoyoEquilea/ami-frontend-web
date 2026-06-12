@@ -58,6 +58,97 @@
           <button type="submit">Generar reporte</button>
         </div>
       </form>
+
+      <form class="filter-panel dynamic-filter-panel" [formGroup]="dynamicReportForm" (ngSubmit)="generateDynamicReport()">
+        <div class="filter-copy">
+          <div>
+            <p class="eyebrow">Reporte</p>
+            <h2>Reporte dinamico</h2>
+          </div>
+          <span>Dinamico</span>
+        </div>
+
+        <div class="prompt-field">
+          <label for="dynamic-report-prompt">Consulta</label>
+          <textarea
+            id="dynamic-report-prompt"
+            formControlName="prompt"
+            rows="3"
+            placeholder="Ej. servicios finalizados de mayo con total por cliente"
+          ></textarea>
+        </div>
+
+        <div class="filter-actions dynamic-actions">
+          <button type="submit" [disabled]="isLoadingDynamicReport">
+            {{ isLoadingDynamicReport ? 'Generando...' : 'Generar reporte' }}
+          </button>
+        </div>
+      </form>
+
+      @if (isLoadingDynamicReport) {
+        <section class="report-panel state-panel">
+          <h2>Generando reporte...</h2>
+          <p>La IA esta preparando los datos solicitados.</p>
+        </section>
+      } @else if (dynamicReportErrorMessage) {
+        <section class="report-panel state-panel error-state">
+          <h2>No se pudo generar el reporte</h2>
+          <p>{{ dynamicReportErrorMessage }}</p>
+        </section>
+      } @else if (dynamicReport; as report) {
+        <section class="report-panel dynamic-result-panel">
+          <div class="dynamic-report-heading">
+            <div>
+              <p class="eyebrow">{{ report.report_type }}</p>
+              <h2>{{ report.title }}</h2>
+            </div>
+            <div class="dynamic-report-actions">
+              <strong>{{ report.row_count }} filas</strong>
+              <button type="button" (click)="exportDynamicPdf()">Exportar PDF</button>
+            </div>
+          </div>
+
+          <div class="filters-summary">
+            <p class="eyebrow">Filtros aplicados</p>
+            <div class="filter-chip-list">
+              @for (filter of filterEntries(report.filters); track filter.key) {
+                <span class="filter-chip">
+                  <strong>{{ filter.label }}</strong>
+                  {{ formatCellValue(filter.key, filter.value) }}
+                </span>
+              }
+            </div>
+          </div>
+
+          @if (report.rows.length === 0) {
+            <div class="empty-state">
+              <h2>Sin resultados</h2>
+              <p>La consulta no devolvio filas para los filtros aplicados.</p>
+            </div>
+          } @else {
+            <div class="dynamic-table-wrap">
+              <table class="dynamic-table">
+                <thead>
+                  <tr>
+                    @for (column of report.columns; track column) {
+                      <th>{{ formatColumnName(column) }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of report.rows; track $index) {
+                    <tr>
+                      @for (column of report.columns; track column) {
+                        <td>{{ formatCellValue(column, row[column]) }}</td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
     </div>   
   </section>
 </main>

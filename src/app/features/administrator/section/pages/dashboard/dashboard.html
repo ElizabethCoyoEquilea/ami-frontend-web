@@ -21,49 +21,53 @@
         }
       </section>
 
-      <div class="dashboard-grid">
-        <section class="panel">
+      <section class="dashboard-charts">
+        <section class="panel chart-panel">
           <div class="panel-header">
-            <div>
-              <p class="eyebrow">Operaciones</p>
-              <h2>Estado actual</h2>
-            </div>
-            <span class="live-pill">Actualizado</span>
+            <h2>Zonas con mayor demanda</h2>
           </div>
 
-          <div class="operations-grid">
-            @for (operation of operationSummaries(); track operation.label) {
-              <article class="operation-card">
-                <span>{{ operation.label }}</span>
-                <strong>{{ operation.value }}</strong>
-                <p>{{ operation.status }}</p>
-              </article>
+          <ul class="chart-summary-list">
+            @for (zone of topZones(); track zone.zone) {
+              <li>
+                <span>{{ zone.zone }}</span>
+                <strong>{{ zone.total }} solicitudes</strong>
+              </li>
+            }
+          </ul>
+
+          <div class="vertical-bar-chart" aria-label="Zonas con más incidencias">
+            @for (zone of topZones(); track zone.zone) {
+              <div class="bar-column">
+                <span class="bar-value">{{ zone.total }}</span>
+                <div class="bar-track">
+                  <span class="bar-fill" [style.height]="getBarHeight(zone.total)"></span>
+                </div>
+                <span class="bar-label">{{ zone.zone }}</span>
+              </div>
             }
           </div>
         </section>
 
         <section class="panel chart-panel">
           <div class="panel-header">
-            <div>
-              <p class="eyebrow">Servicios</p>
-              <h2>Cantidad por mes</h2>
-            </div>
-            <span class="chart-total">{{ monthlyServicesTotal() }} servicios</span>
+            <h2>Solicitudes por tipo de servicio</h2>
           </div>
 
-          <div class="bar-chart" aria-label="Grafico de servicios por mes">
-            @for (service of monthlyServices(); track service.month) {
-              <div class="bar-column">
-                <span class="bar-value">{{ service.total }}</span>
-                <div class="bar-track">
-                  <div class="bar-fill" [style.height]="getBarHeight(service.total)"></div>
+          <div class="horizontal-bar-chart" aria-label="Tipo de servicios más pedidos">
+            @for (service of serviceRequests(); track service.service) {
+              <div class="horizontal-bar-row">
+                <span class="row-label">{{ service.service }}</span>
+                <div class="row-track">
+                  <span class="row-fill" [style.width]="getBarWidth(service.total, getMaxServiceRequests())"></span>
                 </div>
-                <span class="bar-label">{{ service.month }}</span>
+                <strong class="row-value">{{ service.total }}</strong>
               </div>
             }
           </div>
         </section>
-      </div>
+      </section>
+
     </div>
   </section>
 </main>

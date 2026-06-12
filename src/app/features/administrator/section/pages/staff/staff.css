@@ -156,6 +156,98 @@ app-navbar {
   padding: 0.75rem 0.85rem;
 }
 
+.provider-edit-panel {
+  background: var(--color-input);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.provider-edit-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.provider-edit-heading h2 {
+  color: var(--color-titulo);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.provider-edit-heading p {
+  color: var(--color-texto-secundario);
+  margin: 0.25rem 0 0;
+}
+
+.specialty-checklist {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.specialty-checklist label {
+  align-items: center;
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.5rem;
+  color: var(--color-texto);
+  cursor: pointer;
+  display: flex;
+  gap: 0.6rem;
+  font-weight: 700;
+  padding: 0.7rem 0.8rem;
+}
+
+.specialty-checklist input {
+  accent-color: var(--color-boton);
+  height: 1rem;
+  width: 1rem;
+}
+
+.save-provider-button,
+.secondary-button,
+.provider-actions button {
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.55rem 0.75rem;
+  width: fit-content;
+}
+
+.save-provider-button {
+  background: var(--color-boton);
+  border: 0;
+  color: var(--color-blanco);
+}
+
+.save-provider-button:hover:not(:disabled) {
+  background: var(--color-boton-hover);
+}
+
+.secondary-button,
+.provider-actions button {
+  background: transparent;
+  border: 1px solid var(--color-borde);
+  color: var(--color-titulo);
+}
+
+.secondary-button:hover:not(:disabled),
+.provider-actions button:hover:not(:disabled) {
+  border-color: var(--color-titulo);
+}
+
+.save-provider-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .providers-list {
   display: grid;
   gap: 0.65rem;
@@ -166,7 +258,7 @@ app-navbar {
   align-items: center;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1.1fr 1.1fr 10rem;
+  grid-template-columns: 1.1fr 1.1fr 10rem 7rem;
 }
 
 .providers-header {
@@ -192,10 +284,17 @@ app-navbar {
 
 .status-pill {
   border-radius: 999px;
+  display: inline-flex;
   font-size: 0.85rem;
   font-weight: 800;
+  justify-content: center;
   padding: 0.4rem 0.7rem;
   text-align: center;
+}
+
+.provider-row .status-pill {
+  justify-self: center;
+  min-width: 8rem;
 }
 
 .status-pill.available {
@@ -206,6 +305,11 @@ app-navbar {
 .status-pill.busy {
   background: var(--color-error-fondo);
   color: var(--color-error);
+}
+
+.provider-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 @media (max-width: 768px) {
@@ -225,5 +329,9 @@ app-navbar {
   .provider-row {
     align-items: start;
     grid-template-columns: 1fr;
+  }
+
+  .provider-edit-heading {
+    display: grid;
   }
 }

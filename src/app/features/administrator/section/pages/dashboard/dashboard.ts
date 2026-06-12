@@ -23,8 +23,13 @@ interface OperationSummary {
   status: string;
 }
 
-interface MonthlyService {
-  month: string;
+interface ZoneIncident {
+  zone: string;
+  total: number;
+}
+
+interface ServiceRequest {
+  service: string;
   total: number;
 }
 
@@ -63,68 +68,65 @@ export class DashboardComponent implements OnInit, OnDestroy {
         tone: 'green',
       },
       {
-        label: 'Servicios finalizados hoy',
-        value: this.formatInteger(data?.servicios_finalizados_hoy ?? 126),
+        label: 'Calificacion promedio',
+        value: `${this.formatDecimal(data?.calificacion_promedio ?? 4.8)}/5`,
         detail: '',
         tone: 'orange',
       },
       {
-        label: 'Calificacion promedio',
-        value: `${this.formatDecimal(data?.calificacion_promedio ?? 4.8)}/5`,
+        label: 'Tiempo promedio de asignacion',
+        value: `${this.formatDecimal(data?.tiempo_promedio_asignacion ?? 10.5)} min`,
+        detail: '',
+        tone: 'red',
+      },
+      {
+        label: 'Solicitudes pendientes',
+        value: this.formatInteger(data?.solicitudes_pendientes ?? 5),
+        detail: '',
+        tone: 'blue',
+      },
+      {
+        label: 'Servicios finalizados hoy',
+        value: this.formatInteger(data?.servicios_finalizados_hoy ?? 2),
+        detail: '',
+        tone: 'green',
+      },
+      {
+        label: 'Casos no atendidos hoy',
+        value: this.formatInteger(data?.casos_no_atendidos_hoy ?? 126),
+        detail: '',
+        tone: 'orange',
+      },
+      {
+        label: 'Tiempo promedio de llegada',
+        value: `${this.formatDecimal(data?.tiempo_promedio_llegada ?? 4.8)} min`,
         detail: '',
         tone: 'red',
       },
     ];
   });
 
-  readonly operationSummaries = computed<OperationSummary[]>(() => {
-    const operations = this.dashboardData()?.operaciones;
+  readonly topZones = computed<ZoneIncident[]>(() =>
+    (this.dashboardData()?.zonas_mayor_demanda ?? []).map((zone) => ({
+      zone: zone.nombre,
+      total: zone.cantidad,
+    })),
+  );
 
-    return [
-      {
-        label: 'Solicitudes',
-        value: operations?.solicitudes_pendientes_cotizar ?? 14,
-        status: 'Pendientes a cotizar',
-      },
-      {
-        label: 'Asignaciones',
-        value: operations?.asignaciones_pendientes_designar ?? 9,
-        status: 'Pendientes a designar',
-      },
-      {
-        label: 'Servicios',
-        value: operations?.servicios_en_curso ?? 21,
-        status: 'En curso',
-      },
-    ];
-  });
+  readonly serviceRequests = computed<ServiceRequest[]>(() =>
+    (this.dashboardData()?.solicitudes_por_tipo_servicio ?? []).map((service) => ({
+      service: service.nombre || service.codigo,
+      total: service.cantidad,
+    })),
+  );
 
-  readonly monthlyServices = computed<MonthlyService[]>(() => {
-    const months = this.dashboardData()?.servicios_por_mes?.meses;
+  getMaxServiceRequests(): number {
+    return Math.max(1, ...this.serviceRequests().map((item) => item.total));
+  }
 
-    if (!months?.length) {
-      return [
-        { month: 'Ene', total: 38 },
-        { month: 'Feb', total: 46 },
-        { month: 'Mar', total: 52 },
-        { month: 'Abr', total: 61 },
-        { month: 'May', total: 58 },
-        { month: 'Jun', total: 74 },
-        { month: 'Jul', total: 69 },
-        { month: 'Ago', total: 83 },
-      ];
-    }
-
-    return months.map((month) => ({
-      month: month.etiqueta,
-      total: month.cantidad,
-    }));
-  });
-
-  readonly monthlyServicesTotal = computed(() => {
-    const total = this.dashboardData()?.servicios_por_mes?.total;
-    return total ?? this.monthlyServices().reduce((sum, service) => sum + service.total, 0);
-  });
+  getBarWidth(total: number, maxValue: number): string {
+    return `${Math.max(6, (total / maxValue) * 100)}%`;
+  }
 
   ngOnInit(): void {
     void this.loadCurrentUser();
@@ -138,7 +140,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getMaxServices(): number {
-    return Math.max(1, ...this.monthlyServices().map((service) => service.total));
+    return Math.max(1, ...this.topZones().map((zone) => zone.total));
   }
 
   getBarHeight(total: number): string {

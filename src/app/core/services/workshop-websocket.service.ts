@@ -16,6 +16,8 @@ export class WorkshopWebSocketService implements OnDestroy {
 
   private providerWebSocket: WebSocket | null = null;
   private clientWebSocket: WebSocket | null = null;
+  private providerMessageListeners: Array<(message: WebSocketMessage) => void> = [];
+  private clientMessageListeners: Array<(message: WebSocketMessage) => void> = [];
   private tokenWatchHandle: number | null = null;
   private static readonly tokenWatchIntervalMs = 1000;
 
@@ -55,39 +57,27 @@ export class WorkshopWebSocketService implements OnDestroy {
     return true;
   }
 
-  onProviderMessage(callback: (message: WebSocketMessage) => void): void {
+  onProviderMessage(callback: (message: WebSocketMessage) => void): () => void {
+    this.providerMessageListeners.push(callback);
+
     if (!this.providerWebSocket) {
       this.connectProviderWebSocket();
     }
 
-    if (!this.providerWebSocket) return;
-
-    const originalOnMessage = this.providerWebSocket.onmessage;
-    this.providerWebSocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data) as WebSocketMessage;
-        callback(message);
-      } catch {
-        console.warn('Mensaje WebSocket invalido recibido en proveedor.');
-      }
+    return () => {
+      this.providerMessageListeners = this.providerMessageListeners.filter((listener) => listener !== callback);
     };
   }
 
-  onClientMessage(callback: (message: WebSocketMessage) => void): void {
+  onClientMessage(callback: (message: WebSocketMessage) => void): () => void {
+    this.clientMessageListeners.push(callback);
+
     if (!this.clientWebSocket) {
       this.connectClientWebSocket();
     }
 
-    if (!this.clientWebSocket) return;
-
-    const originalOnMessage = this.clientWebSocket.onmessage;
-    this.clientWebSocket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data) as WebSocketMessage;
-        callback(message);
-      } catch {
-        console.warn('Mensaje WebSocket invalido recibido en clientes.');
-      }
+    return () => {
+      this.clientMessageListeners = this.clientMessageListeners.filter((listener) => listener !== callback);
     };
   }
 
@@ -110,6 +100,10 @@ export class WorkshopWebSocketService implements OnDestroy {
     this.providerWebSocket.onopen = () => {
       this.isProviderConnected.set(true);
       console.info('WebSocket proveedor conectado');
+    };
+
+    this.providerWebSocket.onmessage = (event) => {
+      this.notifyProviderListeners(event.data);
     };
 
     this.providerWebSocket.onerror = () => {
@@ -144,6 +138,10 @@ export class WorkshopWebSocketService implements OnDestroy {
       console.info('WebSocket clientes conectado');
     };
 
+    this.clientWebSocket.onmessage = (event) => {
+      this.notifyClientListeners(event.data);
+    };
+
     this.clientWebSocket.onerror = () => {
       console.warn('Error en WebSocket clientes');
       this.isClientConnected.set(false);
@@ -174,6 +172,24 @@ export class WorkshopWebSocketService implements OnDestroy {
 
     window.clearInterval(this.tokenWatchHandle);
     this.tokenWatchHandle = null;
+  }
+
+  private notifyProviderListeners(data: string): void {
+    try {
+      const message = JSON.parse(data) as WebSocketMessage;
+      this.providerMessageListeners.forEach((listener) => listener(message));
+    } catch {
+      console.warn('Mensaje WebSocket invalido recibido en proveedor.');
+    }
+  }
+
+  private notifyClientListeners(data: string): void {
+    try {
+      const message = JSON.parse(data) as WebSocketMessage;
+      this.clientMessageListeners.forEach((listener) => listener(message));
+    } catch {
+      console.warn('Mensaje WebSocket invalido recibido en clientes.');
+    }
   }
 
   private closeWebSockets(): void {

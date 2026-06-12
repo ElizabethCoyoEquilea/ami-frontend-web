@@ -60,12 +60,34 @@ export interface WorkshopProviderUser {
   persona: WorkshopProviderPerson | null;
 }
 
+export interface WorkshopProviderSpecialty {
+  id_proveedor_especialidad: number;
+  id_proveedor: number;
+  id_especialidad: number;
+  activo: boolean;
+  especialidad: {
+    id_especialidad: number;
+    codigo: string;
+    nombre: string;
+    descripcion: string;
+  };
+}
+
 export interface WorkshopProvider {
   id_proveedor: number;
   id_usuario: number;
   id_taller: number;
   estado: string | null;
-  especialidad: string | null;
+  especialidad?: string | null;
+  id_especialidad?: number | null;
+  ids_especialidades?: number[];
+  proveedor_especialidades?: WorkshopProviderSpecialty[];
+  especialidades?: {
+    id_especialidad: number;
+    codigo?: string;
+    nombre?: string;
+    descripcion?: string;
+  }[];
   usuario: WorkshopProviderUser;
 }
 
@@ -73,6 +95,11 @@ export interface WorkshopProvidersResponse {
   id_taller: number;
   total_proveedores: number;
   proveedores: WorkshopProvider[];
+}
+
+export interface UpdateWorkshopProviderServiceRequest {
+  id_proveedor_servicio: number;
+  ids_especialidades: number[];
 }
 
 export interface WorkshopAssignmentRequest {
@@ -99,6 +126,48 @@ export interface WorkshopAssignmentResponse {
   fecha: string;
   estado: string;
   solicitud: WorkshopAssignmentRequest;
+}
+
+export interface WorkshopRequestAssignmentResponse {
+  id_asignacion: number;
+  id_solicitud: number;
+  id_taller: number;
+  id_proveedor: number | null;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  tiempo_llegada: number | null;
+  estado: string;
+}
+
+export interface WorkshopRequestResponse {
+  id_solicitud: number;
+  id_vehiculo: number;
+  descripcion: string;
+  latitud: number | null;
+  longitud: number | null;
+  direccion: string;
+  fecha: string;
+  prioridad: string | null;
+  observaciones: string | null;
+  audio: string | null;
+  imagenes: string[] | null;
+  ronda_actual: number;
+  estado: string;
+  recomendacion: string | null;
+  distancia_desde_taller: number | null;
+  invitacion: WorkshopRequestInvitationResponse | null;
+  asignacion: WorkshopRequestAssignmentResponse | null;
+}
+
+export interface WorkshopRequestInvitationResponse {
+  id_invitacion: number;
+  id_solicitud: number;
+  id_taller: number;
+  numero_ronda: number;
+  estado: string;
+  fecha_hora_envio: string;
+  fecha_hora_expiracion: string;
+  fecha_hora_respuesta: string | null;
 }
 
 @Injectable({
@@ -145,8 +214,22 @@ export class WorkshopService {
     return this.apiService.get<WorkshopProvidersResponse>(`/talleres/${workshopId}/proveedores`);
   }
 
+  updateWorkshopProviderService(
+    workshopId: number,
+    payload: UpdateWorkshopProviderServiceRequest,
+  ): Observable<WorkshopProvider> {
+    return this.apiService.put<WorkshopProvider, UpdateWorkshopProviderServiceRequest>(
+      `/talleres/${workshopId}/proveedor-servicio`,
+      payload,
+    );
+  }
+
   getWorkshopAssignments(workshopId: number): Observable<WorkshopAssignmentResponse[]> {
     return this.apiService.get<WorkshopAssignmentResponse[]>(`/talleres/${workshopId}/asignaciones`);
+  }
+
+  getWorkshopRequests(workshopId: number): Observable<WorkshopRequestResponse[]> {
+    return this.apiService.get<WorkshopRequestResponse[]>(`/talleres/${workshopId}/solicitudes`);
   }
 
   private toWorkshopFormData(workshop: CreateWorkshopRequest | UpdateWorkshopRequest): FormData {

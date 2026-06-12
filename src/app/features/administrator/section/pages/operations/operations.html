@@ -76,14 +76,14 @@
           <div class="panel-heading requests-heading">
             <div>
               <h2>Lista de solicitudes</h2>
-              <p>Solicitudes pendientes de cotizacion para este taller.</p>
+              <p>Solicitudes registradas para este taller.</p>
             </div>
           </div>
 
           @if (isLoadingRequests()) {
             <div class="empty-state">
               <h2>Cargando solicitudes...</h2>
-              <p>Estamos obteniendo las cotizaciones pendientes del taller.</p>
+              <p>Estamos obteniendo las solicitudes del taller.</p>
             </div>
           } @else if (requestsErrorMessage()) {
             <div class="empty-state error-state">
@@ -92,23 +92,16 @@
             </div>
           } @else if (visibleRequests().length === 0) {
             <div class="empty-state">
-              <h2>No hay solicitudes pendientes</h2>
-              <p>Cuando existan solicitudes pendientes, apareceran en esta lista.</p>
+              <h2>No hay solicitudes registradas</h2>
+              <p>Cuando existan solicitudes para este taller, apareceran en esta lista.</p>
             </div>
           } @else {
-            @if (quoteMessage()) {
-              <p class="feedback-message">{{ quoteMessage() }}</p>
-            }
-
-            @if (quoteErrorMessage() && !selectedQuoteRequest()) {
-              <p class="empty-state error-state">{{ quoteErrorMessage() }}</p>
-            }
-
             <div class="requests-list">
               <div class="requests-header">
                 <span>Descripcion</span>
                 <span>Prioridad</span>
-                <span>Observaciones</span>
+                <span>Estado</span>
+                <span>Distancia</span>
                 <span>Fecha</span>
                 <span>Direccion</span>
                 <span>Acciones</span>
@@ -118,40 +111,19 @@
                 <div class="request-row">
                   <span class="main-text">{{ request.descripcion }}</span>
                   <span class="priority-pill" [class.high]="request.prioridad === 'Alta'">{{ request.prioridad }}</span>
-                  <span>{{ request.observaciones }}</span>
+                  <span class="status-pill" [class.pending]="request.estado === 'Pendiente'">{{ request.estado }}</span>
+                  <span>{{ request.distancia }}</span>
                   <span>{{ request.fecha }}</span>
                   <span>{{ request.direccion }}</span>
                   <span class="row-actions request-actions">
-                    <button
-                      type="button"
-                      (click)="openQuoteForm(request)"
-                      [disabled]="requestActionsAreDisabled(request)"
-                    >
-                      Enviar cotizacion
-                    </button>
-                    <button
-                      type="button"
-                      (click)="rejectRequest(request)"
-                      [disabled]="requestActionsAreDisabled(request)"
-                    >
-                      {{ requestIsBeingRejected(request) ? 'Rechazando...' : 'Rechazar' }}
-                    </button>
+                    <button type="button" (click)="openRequestDetail(request)">Ver Detalles</button>
+                    @if (canViewTracking(request)) {
+                      <button type="button" (click)="viewTracking(request)">Ver seguimiento</button>
+                    }
                   </span>
                 </div>
               }
             </div>
-          }
-
-          @if (!isLoadingRequests() && !requestsErrorMessage()) {
-            @if (selectedQuoteRequest(); as request) {
-              <app-request-quote-form
-                [requestDescription]="request.descripcion"
-                [isSubmitting]="isSendingQuote()"
-                [errorMessage]="quoteErrorMessage()"
-                (quoteSubmit)="submitRequestQuote($event)"
-                (cancelQuote)="cancelQuote()"
-              ></app-request-quote-form>
-            }
           }
         } @else if (activeTab() === 'assignments') {
           <div class="panel-heading">
@@ -341,3 +313,117 @@
     </div>
   </section>
 </main>
+
+@if (selectedRequestDetail(); as request) {
+  <div class="modal-backdrop" role="presentation" (click)="closeRequestDetail()">
+    <section
+      class="request-detail-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="request-detail-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Solicitud #{{ request.solicitudId }}</p>
+          <h2 id="request-detail-title">Detalle de solicitud</h2>
+        </div>
+        <button class="link-button" type="button" (click)="closeRequestDetail()">Cerrar</button>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span>Vehiculo</span>
+          <strong>#{{ request.vehiculoId }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Estado</span>
+          <strong>{{ request.estado }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Prioridad</span>
+          <strong>{{ request.prioridad }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Fecha</span>
+          <strong>{{ request.fecha }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Distancia desde taller</span>
+          <strong>{{ request.distancia }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Ronda actual</span>
+          <strong>{{ request.rondaActual }}</strong>
+        </div>
+        <div class="detail-item detail-wide">
+          <span>Descripcion</span>
+          <strong>{{ request.descripcion }}</strong>
+        </div>
+        <div class="detail-item detail-wide">
+          <span>Direccion</span>
+          <strong>{{ request.direccion }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Latitud</span>
+          <strong>{{ request.latitud ?? 'Sin latitud' }}</strong>
+        </div>
+        <div class="detail-item">
+          <span>Longitud</span>
+          <strong>{{ request.longitud ?? 'Sin longitud' }}</strong>
+        </div>
+        <div class="detail-item detail-wide">
+          <span>Diagnostico</span>
+          <strong>{{ request.observaciones }}</strong>
+        </div>
+        <div class="detail-item detail-wide">
+          <span>Audio</span>
+          @if (request.audioUrl) {
+            <audio class="request-audio" [src]="request.audioUrl" controls preload="metadata"></audio>
+          } @else {
+            <strong>Sin audio</strong>
+          }
+        </div>
+        <div class="detail-item detail-wide">
+          <span>Imagenes</span>
+          @if (request.imageUrls.length > 0) {
+            <div class="image-grid">
+              @for (imageUrl of request.imageUrls; track imageUrl) {
+                <img class="request-image" [src]="imageUrl" alt="Imagen de la solicitud" loading="lazy" />
+              }
+            </div>
+          } @else {
+            <strong>Sin imagenes</strong>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedTrackingRequest(); as request) {
+  <div class="modal-backdrop" role="presentation" (click)="closeTracking()">
+    <section
+      class="request-detail-modal tracking-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tracking-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Solicitud #{{ request.solicitudId }}</p>
+          <h2 id="tracking-title">Seguimiento del proveedor</h2>
+        </div>
+        <button class="link-button" type="button" (click)="closeTracking()">Cerrar</button>
+      </div>
+
+      <div class="tracking-map" #trackingMap></div>
+
+      <div class="tracking-legend">
+        <span><i class="request-dot"></i> Solicitud</span>
+        <span><i class="provider-dot"></i> Proveedor</span>
+      </div>
+    </section>
+  </div>
+}
