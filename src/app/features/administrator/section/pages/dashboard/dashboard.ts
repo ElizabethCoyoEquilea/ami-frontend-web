@@ -28,6 +28,16 @@ interface MonthlyService {
   total: number;
 }
 
+interface ZoneIncident {
+  zone: string;
+  total: number;
+}
+
+interface ServiceRequest {
+  service: string;
+  total: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [NavbarComponent, SidebarComponent],
@@ -144,6 +154,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
       total: month.cantidad,
     }));
   });
+
+  readonly topZones = computed<ZoneIncident[]>(() => [
+    { zone: 'Zona sureste', total: 42 },
+    { zone: 'Zona este', total: 31 },
+    { zone: 'Zona norte', total: 18 },
+    { zone: 'Zona sur', total: 14 },
+    { zone: 'Centro', total: 9 },
+  ]);
+
+  readonly serviceRequests = computed<ServiceRequest[]>(() => [
+    { service: 'MECANICA_GENERAL', total: 10 },
+    { service: 'ELECTRICIDAD', total: 12 },
+    { service: 'NEUMATICOS', total: 8 },
+    { service: 'FRENOS', total: 4 },
+    { service: 'MOTOR', total: 15 },
+    { service: 'REFRIGERACION', total: 15 },
+    { service: 'SUSPENSION_DIRECCION', total: 5 },
+    { service: 'TRANSMISION', total: 5 },
+    { service: 'MANTENIMIENTO', total: 6 },
+    { service: 'AIRE_ACONDICIONADO', total: 0 },
+    { service: 'DIAGNOSTICO', total: 1 },
+    { service: 'REMOLQUE', total: 5 },
+  ]);
+
+  getMaxServiceRequests(): number {
+    return Math.max(1, ...this.serviceRequests().map((item) => item.total));
+  }
+
+  getBarWidth(total: number, maxValue: number): string {
+    return `${Math.max(6, (total / maxValue) * 100)}%`;
+  }
 
   readonly monthlyServicesTotal = computed(() => {
     const total = this.dashboardData()?.servicios_por_mes?.total;
