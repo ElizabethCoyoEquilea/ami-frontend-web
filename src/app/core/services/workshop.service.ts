@@ -142,6 +142,8 @@ export interface WorkshopRequestAssignmentResponse {
 export interface WorkshopRequestResponse {
   id_solicitud: number;
   id_vehiculo: number;
+  id_cliente?: number;
+  nombre_cliente?: string;
   descripcion: string;
   latitud: number | null;
   longitud: number | null;
@@ -157,6 +159,21 @@ export interface WorkshopRequestResponse {
   distancia_desde_taller: number | null;
   invitacion: WorkshopRequestInvitationResponse | null;
   asignacion: WorkshopRequestAssignmentResponse | null;
+}
+
+export interface ClientReputationResponse {
+  id_cliente: number;
+  promedio: number;
+  total_calificaciones: number;
+}
+
+export interface ClientRatingResponse {
+  id_calificacion_cliente: number;
+  id_servicio: number;
+  id_cliente: number;
+  puntuacion: number;
+  comentario: string | null;
+  fecha: string;
 }
 
 export interface WorkshopRequestInvitationResponse {
@@ -230,6 +247,14 @@ export class WorkshopService {
 
   getWorkshopRequests(workshopId: number): Observable<WorkshopRequestResponse[]> {
     return this.apiService.get<WorkshopRequestResponse[]>(`/talleres/${workshopId}/solicitudes`);
+  }
+
+  getClientReputation(clientId: number): Observable<ClientReputationResponse> {
+    return this.apiService.get<ClientReputationResponse>(`/clientes/${clientId}/reputacion`);
+  }
+
+  getClientRatingsHistory(clientId: number): Observable<ClientRatingResponse[]> {
+    return this.apiService.get<ClientRatingResponse[]>(`/clientes/${clientId}/calificaciones`);
   }
 
   private toWorkshopFormData(workshop: CreateWorkshopRequest | UpdateWorkshopRequest): FormData {

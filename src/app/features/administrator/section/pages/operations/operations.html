@@ -336,6 +336,56 @@
           <span>Vehiculo</span>
           <strong>#{{ request.vehiculoId }}</strong>
         </div>
+
+        @if (request.nombre_cliente) {
+          <div class="detail-item detail-wide client-info-row">
+            <span>Cliente</span>
+            <div class="client-rating-container">
+              <strong>{{ request.nombre_cliente }}</strong>
+              
+              @if (isLoadingClientReputation()) {
+                <span class="loading-text"> (Cargando reputacion...)</span>
+              } @else if (clientReputationError()) {
+                <span class="error-text"> (Error al cargar reputacion)</span>
+              } @else if (clientReputation()) {
+                <span class="rating-badge">
+                  ★ {{ clientReputation()!.promedio | number:'1.1-1' }} 
+                  ({{ clientReputation()!.total_calificaciones }} calificaciones)
+                </span>
+                @if (clientRatings().length > 0) {
+                  <button type="button" class="history-toggle-btn" (click)="toggleRatingsHistory()">
+                    {{ isShowingRatingsHistory() ? 'Ocultar historial' : 'Ver historial' }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+
+          @if (isShowingRatingsHistory() && clientRatings().length > 0) {
+            <div class="detail-item detail-wide client-history-box">
+              <span>Historial de calificaciones de otros proveedores:</span>
+              <div class="ratings-history-list">
+                @for (rating of clientRatings(); track rating.id_calificacion_cliente) {
+                  <div class="rating-history-item">
+                    <div class="rating-stars-row">
+                      <span class="stars">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <span [style.color]="star <= rating.puntuacion ? '#ffa000' : '#e0e0e0'">★</span>
+                        }
+                      </span>
+                      <span class="date">{{ rating.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    @if (rating.comentario) {
+                      <p class="comment">"{{ rating.comentario }}"</p>
+                    } @else {
+                      <p class="comment empty-comment">Sin comentario.</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
         <div class="detail-item">
           <span>Estado</span>
           <strong>{{ request.estado }}</strong>

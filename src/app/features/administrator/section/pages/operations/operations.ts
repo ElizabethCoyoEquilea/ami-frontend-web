@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
@@ -8,6 +9,7 @@ import {
   WorkshopRequestAssignmentResponse,
   WorkshopRequestResponse,
   WorkshopService,
+  ClientRatingResponse,
 } from '../../../../../core/services/workshop.service';
 import {
   WorkshopCompletedServiceResponse,
@@ -42,6 +44,8 @@ interface ServiceRequest {
   rondaActual: number;
   distancia: string;
   assignmentStatus: string | null;
+  id_cliente?: number;
+  nombre_cliente?: string;
 }
 
 interface Assignment {
@@ -90,7 +94,7 @@ interface TrackingLocation {
 
 @Component({
   selector: 'app-operations',
-  imports: [NavbarComponent, SidebarComponent, AssignStaffFormComponent],
+  imports: [CommonModule, NavbarComponent, SidebarComponent, AssignStaffFormComponent],
   templateUrl: './operations.html',
   styleUrl: './operations.css',
 })
@@ -149,6 +153,13 @@ export class OperationsComponent implements OnInit, OnDestroy {
   public selectedServiceDetails = signal<CompletedServiceDetail[]>([]);
   public selectedPayment = signal<ServicePayment | null>(null);
 
+  // Client reputation & ratings signals
+  public clientReputation = signal<{ promedio: number; total_calificaciones: number } | null>(null);
+  public clientRatings = signal<ClientRatingResponse[]>([]);
+  public isLoadingClientReputation = signal(false);
+  public clientReputationError = signal('');
+  public isShowingRatingsHistory = signal(false);
+
   ngOnInit(): void {
     void this.loadPendingRequests();
     void this.loadAssignments();
@@ -201,10 +212,43 @@ export class OperationsComponent implements OnInit, OnDestroy {
 
   public openRequestDetail(request: ServiceRequest): void {
     this.selectedRequestDetail.set(request);
+    this.clientReputation.set(null);
+    this.clientRatings.set([]);
+    this.clientReputationError.set('');
+    this.isShowingRatingsHistory.set(false);
+
+    if (request.id_cliente) {
+      void this.loadClientReputation(request.id_cliente);
+    }
   }
 
   public closeRequestDetail(): void {
     this.selectedRequestDetail.set(null);
+    this.isShowingRatingsHistory.set(false);
+  }
+
+  async loadClientReputation(clientId: number): Promise<void> {
+    this.isLoadingClientReputation.set(true);
+    this.clientReputationError.set('');
+    try {
+      const rep = await firstValueFrom(this.workshopService.getClientReputation(clientId));
+      this.clientReputation.set({
+        promedio: rep.promedio,
+        total_calificaciones: rep.total_calificaciones,
+      });
+
+      const history = await firstValueFrom(this.workshopService.getClientRatingsHistory(clientId));
+      this.clientRatings.set(history || []);
+    } catch (error) {
+      console.error('Error al cargar reputacion del cliente:', error);
+      this.clientReputationError.set('No se pudo cargar la reputacion del cliente.');
+    } finally {
+      this.isLoadingClientReputation.set(false);
+    }
+  }
+
+  public toggleRatingsHistory(): void {
+    this.isShowingRatingsHistory.update((val) => !val);
   }
 
   public canViewTracking(request: ServiceRequest): boolean {
@@ -451,6 +495,8 @@ export class OperationsComponent implements OnInit, OnDestroy {
       rondaActual: request.ronda_actual,
       distancia: this.formatDistance(request.distancia_desde_taller),
       assignmentStatus: request.asignacion?.estado ?? null,
+      id_cliente: request.id_cliente,
+      nombre_cliente: request.nombre_cliente,
     };
   }
 
