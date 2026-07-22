@@ -44,7 +44,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private readonly route = inject(ActivatedRoute);
   private readonly ngZone = inject(NgZone);
-  private readonly workshopId = this.getWorkshopIdFromRoute();
+  private get workshopId(): number {
+    return this.getWorkshopIdFromRoute();
+  }
   private dashboardWebSocket: WebSocket | null = null;
 
   userName = signal('Usuario');
@@ -223,6 +225,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
 
       currentRoute = currentRoute.parent;
+    }
+
+    const match = window.location.pathname.match(/\/workshop\/(\d+)/i);
+    if (match && match[1]) {
+      const id = Number(match[1]);
+      if (Number.isInteger(id) && id > 0) {
+        return id;
+      }
     }
 
     return 0;
