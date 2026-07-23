@@ -3,7 +3,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 const tokenKey = 'access_token';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
-  const token = sessionStorage.getItem(tokenKey);
+  const token = sessionStorage.getItem(tokenKey) || localStorage.getItem(tokenKey);
 
   if (!token) {
     return next(request);

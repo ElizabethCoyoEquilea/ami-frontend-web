@@ -41,7 +41,7 @@ export class AuthService {
       .pipe(
         tap((response) => {
           sessionStorage.setItem(this.tokenKey, response.access_token);
-          localStorage.removeItem(this.tokenKey);
+          localStorage.setItem(this.tokenKey, response.access_token);
         }),
       );
   }
@@ -86,10 +86,9 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    const token = sessionStorage.getItem(this.tokenKey);
+    const token = sessionStorage.getItem(this.tokenKey) || localStorage.getItem(this.tokenKey);
 
     if (!token) {
-      localStorage.removeItem(this.tokenKey);
       return null;
     }
 
