@@ -160,22 +160,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private async loadInitialDashboard(): Promise<void> {
-    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+    const id = this.workshopId;
+    if (!Number.isInteger(id) || id <= 0) {
       return;
     }
 
     try {
       const data = await firstValueFrom(
-        this.dashboardService.getTodayDashboard(this.workshopId).pipe(timeout(10000)),
+        this.dashboardService.getTodayDashboard(id).pipe(timeout(10000)),
       );
-      this.dashboardData.set(data);
+      if (data) {
+        this.dashboardData.set(data);
+      }
     } catch {
-      this.dashboardData.set(null);
+      // Preservar datos existentes sin limpiar a null
     }
   }
 
   private connectDashboardWebSocket(): void {
-    if (!Number.isInteger(this.workshopId) || this.workshopId <= 0) {
+    const id = this.workshopId;
+    if (!Number.isInteger(id) || id <= 0) {
       return;
     }
 
@@ -184,8 +188,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.dashboardWebSocket && this.dashboardWebSocket.readyState === WebSocket.OPEN) {
+      return;
+    }
+
     this.dashboardWebSocket?.close();
-    this.dashboardWebSocket = new WebSocket(this.dashboardService.getDashboardWebSocketUrl(this.workshopId, token));
+    this.dashboardWebSocket = new WebSocket(this.dashboardService.getDashboardWebSocketUrl(id, token));
 
     this.dashboardWebSocket.onmessage = (event) => {
       this.ngZone.run(() => this.handleDashboardSocketMessage(event.data));
@@ -204,11 +212,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (message.data.id_taller !== this.workshopId) {
-        return;
+      if (message.data && message.data.id_taller === this.workshopId) {
+        this.dashboardData.set(message.data);
       }
-
-      this.dashboardData.set(message.data);
     } catch {
       console.warn('Mensaje WebSocket invalido recibido en dashboard.');
     }

@@ -9,7 +9,7 @@ import { SidebarComponent } from '../../../../../layout/sidebar/sidebar';
 import { NavbarComponent } from '../../../../../shared/components/navbar/navbar';
 
 type StaffTab = 'invite' | 'list';
-type ProviderStatus = 'Ocupado' | 'Disponible';
+type ProviderStatus = 'Ocupado' | 'Disponible' | 'Fuera de servicio';
 
 interface ServiceProvider {
   id: number;
@@ -247,8 +247,10 @@ export class StaffComponent {
   }
 
   private mapProvider(provider: WorkshopProvider): ServiceProvider {
-    const normalizedStatus = provider.estado?.trim().toLowerCase();
-    const status: ProviderStatus = normalizedStatus === 'ocupado' ? 'Ocupado' : 'Disponible';
+    const rawStatus = provider.estado?.trim() || 'Fuera de servicio';
+    const normalizedStatus = rawStatus.toLowerCase();
+    const isAvailable = normalizedStatus === 'disponible' || normalizedStatus === 'activo' || normalizedStatus === 'online';
+    const status: ProviderStatus = isAvailable ? 'Disponible' : (rawStatus.toLowerCase() === 'ocupado' ? 'Ocupado' : 'Fuera de servicio');
 
     return {
       id: provider.id_proveedor,
